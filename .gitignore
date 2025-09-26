@@ -1,0 +1,24 @@
+# Build outputs
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
+*~
+.nfs*
+
+# IDE files
+.vscode/
+.idea/
+
+# Local settings (for sensitive data)
+appsettings.Local.json
