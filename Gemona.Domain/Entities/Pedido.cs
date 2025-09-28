@@ -1,3 +1,5 @@
+using Gemona.Domain.Enums;
+
 namespace Gemona.Domain.Entities
 {
     public class Pedido : BaseEntity
@@ -8,7 +10,7 @@ namespace Gemona.Domain.Entities
         public DateTime? DataSolicitacao { get; set; }
         public DateTime? DataConclucao { get; set; }
         public decimal? ValorFinal { get; set; }
-        public string Status { get; set; } = "Solicitado";
+        public StatusPedido Status { get; set; } = StatusPedido.Solicitado;
 
         public virtual Cliente Cliente { get; set; } = null!;
         public virtual Servico Servico { get; set; } = null!;

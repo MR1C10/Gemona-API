@@ -1,3 +1,5 @@
+using Gemona.Domain.Enums;
+
 namespace Gemona.Domain.Entities
 {
     public class Avaliacao : BaseEntity
@@ -5,7 +7,7 @@ namespace Gemona.Domain.Entities
         public int AvaliacaoId { get; set; }
         public int PedidoId { get; set; }
         public int ClienteId { get; set; }
-        public byte Nota { get; set; }
+        public NotaAvaliacao Nota { get; set; } 
         public string? Comenterio { get; set; }
         public DateTime Data { get; set; }
         public string? ImagemAvaliacaoUrl { get; set; }

@@ -1,10 +1,12 @@
+using Gemona.Domain.Enums;
+
 namespace Gemona.Domain.Entities
 {
     public class HorarioFuncionamento : BaseEntity
     {
         public int HorarioId { get; set; }
         public int EstabelecimentoId { get; set; }
-        public byte Diasemana { get; set; }
+        public DiaSemana Diasemana { get; set; }
         public TimeOnly? HoraAbertura { get; set; }
         public TimeOnly? HoraFechamento { get; set; }
         public bool Fechado { get; set; } = false;
