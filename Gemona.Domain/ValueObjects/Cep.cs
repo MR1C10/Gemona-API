@@ -17,7 +17,7 @@ namespace Gemona.Domain.ValueObjects
             {
                 throw new ArgumentException("CEP inválido", nameof(cep));
             }
-
+            Valor = cepLimpo;
         }
 
         private static string RemoverMascara(string cep)
