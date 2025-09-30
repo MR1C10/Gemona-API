@@ -1,5 +1,3 @@
-using Gemona.Domain.ValueObjects;
-
 namespace Gemona.Domain.Entities
 {
     public class Estabelecimento : BaseEntity
@@ -9,7 +7,7 @@ namespace Gemona.Domain.Entities
         public string? Telefone { get; set; }
         public string Email { get; set; } = string.Empty;
         public string? Descricao { get; set; }
-        public Cnpj Cnpj { get; set; } = null!;
+        public string? Cnpj { get; set; } = string.Empty;
         public string? ImagemEstabelecimentoUrl { get; set; }
         public int ProfissionalId { get; set; }
         public int EnderecolId { get; set; }

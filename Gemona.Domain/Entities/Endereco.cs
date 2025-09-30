@@ -1,5 +1,3 @@
-using Gemona.Domain.ValueObjects;
-
 namespace Gemona.Domain.Entities
 {
     public class Endereco : BaseEntity
@@ -11,7 +9,7 @@ namespace Gemona.Domain.Entities
         public string? Complemento { get; set; }
         public string Cidade { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
-        public Cep Cep { get; set; } = null!;
+        public string Cep { get; set; } = string.Empty;
         public decimal Altitude { get; set; }
         public decimal Longitude { get; set; }
 

@@ -1,5 +1,3 @@
-using Gemona.Domain.ValueObjects;
-
 namespace Gemona.Domain.Entities
 {
     public class Profissional : BaseEntity
@@ -8,7 +6,7 @@ namespace Gemona.Domain.Entities
         public string Nome { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Telefone { get; set; } = string.Empty;
-        public Cpf? Cpf { get; set; } = null!;
+        public string Cpf { get; set; } = string.Empty;
         public string? ImagemPerfilUrl { get; set; }
         public DateTime DataNacimento { get; set; }
         public string SenhaHash { get; set; } = string.Empty;
