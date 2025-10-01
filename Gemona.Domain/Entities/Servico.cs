@@ -8,6 +8,7 @@ namespace Gemona.Domain.Entities
         public int SubCategoriaId { get; set; }
         public decimal Preco { get; set; }
         public string? ImagemServicoUrl { get; set; }
+        public int EstabelecimentoId { get; set; }
 
         public virtual SubCategoria SubCategoria { get; set; } = null!;
         public virtual Estabelecimento Estabelecimento { get; set; } = null!;
