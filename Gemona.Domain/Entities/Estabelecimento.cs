@@ -12,7 +12,7 @@ namespace Gemona.Domain.Entities
         public Cnpj Cnpj { get; set; } = null!;
         public string? ImagemEstabelecimentoUrl { get; set; }
         public int ProfissionalId { get; set; }
-        public int EnderecolId { get; set; }
+        public int EnderecoId { get; set; }
 
         public virtual Profissional Profissional { get; set; } = null!;
         public virtual Endereco Endereco { get; set; } = null!;
