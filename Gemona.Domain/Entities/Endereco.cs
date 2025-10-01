@@ -12,7 +12,7 @@ namespace Gemona.Domain.Entities
         public string Cidade { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
         public Cep Cep { get; set; } = null!;
-        public decimal Altitude { get; set; }
+        public decimal Latitude { get; set; } // escrevi errado :( .....
         public decimal Longitude { get; set; }
 
         public Cliente? Cliente { get; set; }
