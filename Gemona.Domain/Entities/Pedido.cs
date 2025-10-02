@@ -7,8 +7,9 @@ namespace Gemona.Domain.Entities
         public int PedidoId { get; set; }
         public int ClienteId { get; set; }
         public int ServicoId { get; set; }
-        public DateTime? DataSolicitacao { get; set; }
+        public DateTime DataSolicitacao { get; set; }
         public DateTime? DataConclucao { get; set; }
+        public DateTime? DataAgendamento { get; set; }
         public decimal? ValorFinal { get; set; }
         public StatusPedido Status { get; set; } = StatusPedido.Solicitado;
 
