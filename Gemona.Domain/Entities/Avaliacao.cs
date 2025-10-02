@@ -8,7 +8,7 @@ namespace Gemona.Domain.Entities
         public int PedidoId { get; set; }
         public int ClienteId { get; set; }
         public NotaAvaliacao Nota { get; set; } 
-        public string? Comenterio { get; set; }
+        public string? Comentario { get; set; }
         public DateTime Data { get; set; }
         public string? ImagemAvaliacaoUrl { get; set; }
 
