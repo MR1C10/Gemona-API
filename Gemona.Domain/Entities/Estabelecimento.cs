@@ -16,7 +16,7 @@ namespace Gemona.Domain.Entities
 
         public virtual Profissional Profissional { get; set; } = null!;
         public virtual Endereco Endereco { get; set; } = null!;
-        public virtual ICollection<HorarioFuncionamento> HorarioFuncionamento { get; set; } = new List<HorarioFuncionamento>();
+        public virtual ICollection<HorarioFuncionamento> HorariosFuncionamento { get; set; } = new List<HorarioFuncionamento>();
         public virtual ICollection<Servico> Servicos { get; set; } = new List<Servico>();
     }
 }

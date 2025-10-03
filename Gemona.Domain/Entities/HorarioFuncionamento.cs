@@ -6,7 +6,7 @@ namespace Gemona.Domain.Entities
     {
         public int HorarioId { get; set; }
         public int EstabelecimentoId { get; set; }
-        public DiaSemana Diasemana { get; set; }
+        public DiaSemana DiaSemana { get; set; }
         public TimeOnly? HoraAbertura { get; set; }
         public TimeOnly? HoraFechamento { get; set; }
         public bool Fechado { get; set; } = false;
