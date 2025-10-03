@@ -10,7 +10,7 @@ namespace Gemona.Domain.Entities
         public string Telefone { get; set; } = string.Empty;
         public Cpf Cpf { get; set; } = null!;
         public string? ImagemPerfilUrl { get; set; }
-        public DateTime DataNacimento { get; set; }
+        public DateTime DataNascimento { get; set; }
         public string SenhaHash { get; set; } = string.Empty;
 
         public virtual Estabelecimento? Estabelecimento { get; set; }
