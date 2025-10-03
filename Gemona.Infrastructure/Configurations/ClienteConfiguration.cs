@@ -9,7 +9,7 @@ namespace Gemona.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Cliente> builder)
         {
-            builder.ToTable("Cliente");
+            builder.ToTable("cliente");
 
             builder.HasKey(c => c.ClienteId);
             builder.Property(c => c.ClienteId).HasColumnName("cliente_id");
@@ -36,22 +36,20 @@ namespace Gemona.Infrastructure.Configurations
                 .HasMaxLength(11)
                 .HasConversion(
                     cpf => cpf.Valor,
-                    valor => new Cpf(valor)
-                )
+                    valor => new Cpf(valor))
                 .IsRequired();
 
             builder.HasIndex(c => c.Cpf).IsUnique();
 
             builder.Property(c => c.ImagemPerfilUrl)
                 .HasColumnName("imagem_perfil_url")
-                .HasMaxLength(255)
-                .IsRequired();
+                .HasMaxLength(255);
 
             builder.Property(c => c.EnderecoId)
                 .HasColumnName("endereco_id");
 
-            builder.Property(c => c.DataNacimento)
-                .HasColumnName("data_nacimento")
+            builder.Property(c => c.DataNascimento)
+                .HasColumnName("data_nascimento")
                 .HasColumnType("DATE")
                 .IsRequired();
 
@@ -77,11 +75,11 @@ namespace Gemona.Infrastructure.Configurations
             builder.HasOne(c => c.Endereco)
                 .WithOne(e => e.Cliente)
                 .HasForeignKey<Cliente>(c => c.EnderecoId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasMany(c => c.Pedidos)
                 .WithOne(p => p.Cliente)
-                .HasForeignKey(c => c.ClienteId)
+                .HasForeignKey(p => p.ClienteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.Avaliacoes)

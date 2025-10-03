@@ -12,7 +12,6 @@ namespace Gemona.Infrastructure.Configurations
             builder.ToTable("profissional");
 
             builder.HasKey(p => p.ProfissionalId);
-
             builder.Property(p => p.ProfissionalId).HasColumnName("profissional_id");
 
             builder.Property(p => p.Nome)
@@ -22,7 +21,8 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.Property(p => p.Email)
                 .HasColumnName("email")
-                .HasMaxLength(150);
+                .HasMaxLength(150)
+                .IsRequired();
 
             builder.HasIndex(p => p.Email).IsUnique();
 
@@ -31,13 +31,13 @@ namespace Gemona.Infrastructure.Configurations
                 .HasMaxLength(20)
                 .IsRequired();
 
+            // Configuração do Value Object CPF
             builder.Property(p => p.Cpf)
                 .HasColumnName("cpf")
                 .HasMaxLength(11)
                 .HasConversion(
                     cpf => cpf.Valor,
-                    valor => new Cpf(valor)
-                )
+                    valor => new Cpf(valor))
                 .IsRequired();
 
             builder.HasIndex(p => p.Cpf).IsUnique();
@@ -46,8 +46,8 @@ namespace Gemona.Infrastructure.Configurations
                 .HasColumnName("imagem_perfil_url")
                 .HasMaxLength(255);
 
-            builder.Property(p => p.DataNacimento)
-                .HasColumnName("data_nacimento")
+            builder.Property(p => p.DataNascimento)
+                .HasColumnName("data_nascimento")
                 .HasColumnType("DATE")
                 .IsRequired();
 
@@ -64,6 +64,11 @@ namespace Gemona.Infrastructure.Configurations
             builder.Property(p => p.DataAtualizacao)
                 .HasColumnName("data_atualizacao")
                 .HasColumnType("DATETIME(6)");
+
+            builder.Property(p => p.Ativo)
+                .HasColumnName("ativo")
+                .HasDefaultValue(true)
+                .IsRequired();
 
             builder.HasOne(p => p.Estabelecimento)
                 .WithOne(e => e.Profissional)

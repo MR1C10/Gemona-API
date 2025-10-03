@@ -24,14 +24,13 @@ namespace Gemona.Infrastructure.Configurations
                 .HasMaxLength(20);
 
             builder.Property(e => e.Bairro)
-                .HasColumnName("bairo")
+                .HasColumnName("bairro")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(e => e.Complemento)
                 .HasColumnName("complemento")
                 .HasMaxLength(100);
-
 
             builder.Property(e => e.Cidade)
                 .HasColumnName("cidade")
@@ -43,6 +42,7 @@ namespace Gemona.Infrastructure.Configurations
                 .HasMaxLength(2)
                 .IsRequired();
 
+            // Configuração do Value Object CEP
             builder.Property(e => e.Cep)
                 .HasColumnName("cep")
                 .HasMaxLength(8)
@@ -61,6 +61,7 @@ namespace Gemona.Infrastructure.Configurations
                 .HasPrecision(11, 8)
                 .IsRequired();
 
+            // Configurações de auditoria
             builder.Property(e => e.DataCriacao)
                 .HasColumnName("data_criacao")
                 .HasColumnType("DATETIME(6)")
@@ -79,6 +80,11 @@ namespace Gemona.Infrastructure.Configurations
                 .WithOne(est => est.Endereco)
                 .HasForeignKey<Estabelecimento>(est => est.EnderecoId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(e => e.Cliente)
+                .WithOne(c => c.Endereco)
+                .HasForeignKey<Cliente>(c => c.EnderecoId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

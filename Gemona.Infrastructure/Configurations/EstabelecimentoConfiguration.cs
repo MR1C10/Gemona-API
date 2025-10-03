@@ -11,9 +11,8 @@ namespace Gemona.Infrastructure.Configurations
         {
             builder.ToTable("estabelecimento");
 
-
             builder.HasKey(e => e.EstabelecimentoId);
-            builder.Property(e => e.EstabelecimentoId).HasColumnName("estabelecimento_is");
+            builder.Property(e => e.EstabelecimentoId).HasColumnName("estabelecimento_id");
 
             builder.Property(e => e.Nome)
                 .HasColumnName("nome")
@@ -22,8 +21,7 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.Property(e => e.Telefone)
                 .HasColumnName("telefone")
-                .HasMaxLength(20)
-                .IsRequired();
+                .HasMaxLength(20);
 
             builder.Property(e => e.Email)
                 .HasColumnName("email")
@@ -48,6 +46,10 @@ namespace Gemona.Infrastructure.Configurations
                 .HasColumnName("imagem_estabelecimento_url")
                 .HasMaxLength(255);
 
+            builder.Property(e => e.ProfissionalId)
+                .HasColumnName("profissional_id")
+                .IsRequired();
+
             builder.Property(e => e.EnderecoId)
                 .HasColumnName("endereco_id")
                 .IsRequired();
@@ -68,17 +70,17 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.HasOne(e => e.Profissional)
                 .WithOne(p => p.Estabelecimento)
-                .HasForeignKey<Estabelecimento>(e => e.EnderecoId)
+                .HasForeignKey<Estabelecimento>(e => e.ProfissionalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(e => e.Endereco)
                 .WithOne(end => end.Estabelecimento)
-                .HasForeignKey<Estabelecimento>(e => e.EstabelecimentoId)
+                .HasForeignKey<Estabelecimento>(e => e.EnderecoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(e => e.HorarioFuncionamento)
+            builder.HasMany(e => e.HorariosFuncionamento)
                 .WithOne(h => h.Estabelecimento)
-                .HasForeignKey(e => e.EstabelecimentoId)
+                .HasForeignKey(h => h.EstabelecimentoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(e => e.Servicos)

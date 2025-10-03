@@ -8,7 +8,7 @@ namespace Gemona.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<SubCategoria> builder)
         {
-            builder.ToTable("sub_categoria");
+            builder.ToTable("sub_categorias");
 
             builder.HasKey(s => s.SubCategoriaId);
             builder.Property(s => s.SubCategoriaId).HasColumnName("sub_categoria_id");
@@ -18,7 +18,11 @@ namespace Gemona.Infrastructure.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.Property(s => s.ImagemSubCategoriaUrl)
+            builder.Property(s => s.CategoriaId)
+                .HasColumnName("categoria_id")
+                .IsRequired();
+
+            builder.Property(s => s.ImagemSubcategoriaUrl)
                 .HasColumnName("imagem_subcategoria_url")
                 .HasMaxLength(255);
 
@@ -38,7 +42,7 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.HasOne(s => s.Categoria)
                 .WithMany(c => c.SubCategorias)
-                .HasForeignKey(s => s.SubCategoriaId)
+                .HasForeignKey(s => s.CategoriaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(s => s.Servicos)

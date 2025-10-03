@@ -23,7 +23,7 @@ namespace Gemona.Infrastructure.Configurations
                 .HasColumnType("TEXT");
 
             builder.Property(s => s.SubCategoriaId)
-                .HasColumnName("subcategoria_id")
+                .HasColumnName("sub_categoria_id")
                 .IsRequired();
 
             builder.Property(s => s.Preco)
@@ -65,7 +65,7 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.HasMany(s => s.Pedidos)
                 .WithOne(p => p.Servico)
-                .HasForeignKey(s => s.PedidoId)
+                .HasForeignKey(p => p.ServicoId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

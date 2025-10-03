@@ -9,17 +9,16 @@ namespace Gemona.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Avaliacao> builder)
         {
-            builder.ToTable("avaliacao");
+            builder.ToTable("avaliacoes");
 
             builder.HasKey(a => a.AvaliacaoId);
-            builder.Property(a => a.AvaliacaoId).HasColumnName("avaliacao_id");
-
+            builder.Property(a => a.AvaliacaoId).HasColumnName("avaliacoes_id");
 
             builder.Property(a => a.PedidoId)
                 .HasColumnName("pedido_id")
                 .IsRequired();
 
-            builder.HasIndex(a => a.AvaliacaoId).IsUnique();
+            builder.HasIndex(a => a.PedidoId).IsUnique();
 
             builder.Property(a => a.ClienteId)
                 .HasColumnName("cliente_id")
@@ -36,10 +35,11 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.Property(a => a.Data)
                 .HasColumnName("data")
-                .HasColumnType("DATETIME(6)");
+                .HasColumnType("DATETIME(6)")
+                .IsRequired();
 
-            builder.Property(a => a.ImagemAvaliacaoUrl)
-                .HasColumnName("Imagem_avaliacao_url")
+            builder.Property(a => a.ImagemComentarioUrl)
+                .HasColumnName("imagem_comentario_url")
                 .HasMaxLength(255);
 
             builder.Property(a => a.DataCriacao)

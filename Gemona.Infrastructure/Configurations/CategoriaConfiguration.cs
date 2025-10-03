@@ -11,14 +11,14 @@ namespace Gemona.Infrastructure.Configurations
             builder.ToTable("categorias");
 
             builder.HasKey(c => c.CategoriaId);
-            builder.Property(c => c.CategoriaId).HasColumnName("cateria_id");
+            builder.Property(c => c.CategoriaId).HasColumnName("categoria_id");
 
             builder.Property(c => c.Nome)
                 .HasColumnName("nome")
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.Property(c => c.ImagemCategorialUrl)
+            builder.Property(c => c.ImagemCategoriaUrl)
                 .HasColumnName("imagem_categoria_url")
                 .HasMaxLength(255);
 
@@ -36,6 +36,7 @@ namespace Gemona.Infrastructure.Configurations
                 .HasDefaultValue(true)
                 .IsRequired();
 
+            // Relacionamentos
             builder.HasMany(c => c.SubCategorias)
                 .WithOne(s => s.Categoria)
                 .HasForeignKey(s => s.CategoriaId)

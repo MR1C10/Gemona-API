@@ -18,7 +18,7 @@ namespace Gemona.Infrastructure.Configurations
                 .HasColumnName("estabelecimento_id")
                 .IsRequired();
 
-            builder.Property(h => h.Diasemana)
+            builder.Property(h => h.DiaSemana)
                 .HasColumnName("dia_semana")
                 .HasConversion<byte>()
                 .IsRequired();
@@ -33,7 +33,8 @@ namespace Gemona.Infrastructure.Configurations
 
             builder.Property(h => h.Fechado)
                 .HasColumnName("fechado")
-                .HasDefaultValue(false);
+                .HasDefaultValue(false)
+                .IsRequired();
 
             builder.Property(h => h.DataCriacao)
                 .HasColumnName("data_criacao")
@@ -49,8 +50,9 @@ namespace Gemona.Infrastructure.Configurations
                 .HasDefaultValue(true)
                 .IsRequired();
 
+            // Relacionamentos
             builder.HasOne(h => h.Estabelecimento)
-                .WithMany(e => e.HorarioFuncionamento)
+                .WithMany(e => e.HorariosFuncionamento)
                 .HasForeignKey(h => h.EstabelecimentoId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

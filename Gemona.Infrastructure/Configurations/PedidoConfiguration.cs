@@ -27,12 +27,12 @@ namespace Gemona.Infrastructure.Configurations
                 .HasColumnType("DATETIME(6)")
                 .IsRequired();
 
-            builder.Property(p => p.DataConclucao)
+            builder.Property(p => p.DataConclusao)
                 .HasColumnName("data_conclusao")
                 .HasColumnType("DATETIME(6)");
 
             builder.Property(p => p.DataAgendamento)
-                .HasColumnName("data.agendamento")
+                .HasColumnName("data_agendamento")
                 .HasColumnType("DATETIME(6)");
 
             builder.Property(p => p.ValorFinal)
