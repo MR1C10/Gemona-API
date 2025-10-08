@@ -42,7 +42,6 @@ namespace Gemona.Infrastructure.Configurations
             builder.Property(p => p.Status)
                 .HasColumnName("status")
                 .HasConversion<string>()
-                .HasDefaultValue(StatusPedido.Solicitado)
                 .IsRequired();
 
             builder.Property(p => p.DataCriacao)
