@@ -2,9 +2,9 @@ namespace Gemona.Domain.Enums
 {
     public enum StatusPedido
     {
-        Solicitado = 1,
-        Agendado = 2,
-        Concluido = 3,
-        Cancelado = 4,
+        Solicitado = 0,
+        Agendado = 1,
+        Concluido = 2,
+        Cancelado = 3,
     }
 }
