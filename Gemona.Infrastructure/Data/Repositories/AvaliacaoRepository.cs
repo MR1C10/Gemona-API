@@ -17,7 +17,7 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(a => a.Pedido)
                 .ThenInclude(p => p.Servico)
-                .Where(a => a.ClienteId == clienteId && a.Ativo)
+                .Where(a => a.ClienteId == clienteId)
                 .OrderByDescending(a => a.Data)
                 .ToListAsync();
         }
@@ -28,7 +28,7 @@ namespace Gemona.Infrastructure.Data.Repositories
                 .Include(a => a.Cliente)
                 .Include(a => a.Pedido)
                 .ThenInclude(p => p.Servico)
-                .Where(a => a.Pedido.Servico.EstabelecimentoId == estabelecimentoId && a.Ativo)
+                .Where(a => a.Pedido.Servico.EstabelecimentoId == estabelecimentoId)
                 .OrderByDescending(a => a.Data)
                 .ToListAsync();
         }
@@ -37,7 +37,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(a => a.Cliente)
-                .FirstOrDefaultAsync(a => a.PedidoId == pedidoId && a.Ativo);
+                .FirstOrDefaultAsync(a => a.PedidoId == pedidoId);
         }
 
         public async Task<double> GetMediaAvaliacoesEstabelecimentoAsync(int estabelecimentoId)
@@ -45,7 +45,7 @@ namespace Gemona.Infrastructure.Data.Repositories
             var avaliacoes = await _dbSet
                 .Include(a => a.Pedido)
                 .ThenInclude(p => p.Servico)
-                .Where(a => a.Pedido.Servico.EstabelecimentoId == estabelecimentoId && a.Ativo)
+                .Where(a => a.Pedido.Servico.EstabelecimentoId == estabelecimentoId)
                 .Select(a => (int)a.Nota)
                 .ToListAsync();
 
@@ -57,14 +57,14 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(a => a.Cliente)
                 .Include(a => a.Pedido)
-                .Where(a => a.Nota == nota && a.Ativo)
+                .Where(a => a.Nota == nota)
                 .ToListAsync();
         }
 
         public async Task<bool> ClienteJaAvaliouPedidoAsync(int clienteId, int pedidoId)
         {
             return await _dbSet
-                .AnyAsync(a => a.ClienteId == clienteId && a.PedidoId == pedidoId && a.Ativo);
+                .AnyAsync(a => a.ClienteId == clienteId && a.PedidoId == pedidoId);
         }
     }
 }

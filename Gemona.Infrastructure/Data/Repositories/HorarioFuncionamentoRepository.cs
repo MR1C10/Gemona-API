@@ -15,7 +15,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<IEnumerable<HorarioFuncionamento>> GetHorariosByEstabelecimentoAsync(int estabelecimentoId)
         {
             return await _dbSet
-                .Where(h => h.EstabelecimentoId == estabelecimentoId && h.Ativo)
+                .Where(h => h.EstabelecimentoId == estabelecimentoId)
                 .OrderBy(h => h.DiaSemana)
                 .ToListAsync();
         }
@@ -24,7 +24,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .FirstOrDefaultAsync(h => h.EstabelecimentoId == estabelecimentoId && 
-                                         h.DiaSemana == diaSemana && h.Ativo);
+                                        h.DiaSemana == diaSemana);
         }
 
         public async Task<IEnumerable<HorarioFuncionamento>> GetEstabelecimentosAbertosAsync(DiaSemana diaSemana, TimeOnly horario)
@@ -32,10 +32,9 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(h => h.Estabelecimento)
                 .Where(h => h.DiaSemana == diaSemana && 
-                           !h.Fechado &&
-                           h.HoraAbertura <= horario &&
-                           h.HoraFechamento >= horario && 
-                           h.Ativo)
+                        !h.Fechado &&
+                        h.HoraAbertura <= horario &&
+                        h.HoraFechamento >= horario)
                 .ToListAsync();
         }
 
@@ -43,11 +42,10 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .AnyAsync(h => h.EstabelecimentoId == estabelecimentoId &&
-                              h.DiaSemana == diaSemana &&
-                              !h.Fechado &&
-                              h.HoraAbertura <= horario &&
-                              h.HoraFechamento >= horario && 
-                              h.Ativo);
+                            h.DiaSemana == diaSemana &&
+                            !h.Fechado &&
+                            h.HoraAbertura <= horario &&
+                            h.HoraFechamento >= horario);
         }
     }
 }

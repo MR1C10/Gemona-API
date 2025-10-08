@@ -14,7 +14,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Servico>> GetServicosByEstabelecimentoAsync(int estabelecimentoId)
         {
             return await _dbSet
-                .Where(s => s.EstabelecimentoId == estabelecimentoId && s.Ativo)
+                .Where(s => s.EstabelecimentoId == estabelecimentoId)
                 .ToListAsync();
         }
 
@@ -22,21 +22,21 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(s => s.SubCategoria)
-                .Where(s => s.SubCategoria.CategoriaId == categoriaId && s.Ativo)
+                .Where(s => s.SubCategoria.CategoriaId == categoriaId)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Servico>> GetServicosBySubCategoriaAsync(int subCategoriaId)
         {
             return await _dbSet
-                .Where(s => s.SubCategoriaId == subCategoriaId && s.Ativo)
+                .Where(s => s.SubCategoriaId == subCategoriaId)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Servico>> GetServicosByFaixaPrecoAsync(decimal precoMinimo, decimal precoMaximo)
         {
             return await _dbSet
-                .Where(s => s.Preco >= precoMinimo && s.Preco <= precoMaximo && s.Ativo)
+                .Where(s => s.Preco >= precoMinimo && s.Preco <= precoMaximo)
                 .ToListAsync();
         }
 
@@ -47,7 +47,7 @@ namespace Gemona.Infrastructure.Data.Repositories
                 .ThenInclude(sc => sc.Categoria)
                 .Include(s => s.Estabelecimento)
                 .ThenInclude(e => e.Endereco)
-                .FirstOrDefaultAsync(s => s.ServicoId == servicoId && s.Ativo);
+                .FirstOrDefaultAsync(s => s.ServicoId == servicoId);
         }
 
         public async Task<IEnumerable<Servico>> BuscarServicosAsync(string termo)
@@ -58,7 +58,7 @@ namespace Gemona.Infrastructure.Data.Repositories
                 .Where(s => (s.Nome.Contains(termo) || 
                             s.Descricao!.Contains(termo) ||
                             s.SubCategoria.Nome.Contains(termo) ||
-                            s.SubCategoria.Categoria.Nome.Contains(termo)) && s.Ativo) 
+                            s.SubCategoria.Categoria.Nome.Contains(termo)))
                 .ToListAsync();
         }
     }

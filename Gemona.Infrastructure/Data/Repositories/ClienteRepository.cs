@@ -15,32 +15,32 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<Cliente?> GetByEmailAsync(string email)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Email == email && c.Ativo);
+                .FirstOrDefaultAsync(c => c.Email == email);
         }
 
         public async Task<Cliente?> GetByCpfAsync(Cpf cpf)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Cpf.Valor == cpf.Valor && c.Ativo);
+                .FirstOrDefaultAsync(c => c.Cpf.Valor == cpf.Valor);
         }
 
         public async Task<bool> EmailExistsAsync(string email)
         {
             return await _dbSet
-                .AnyAsync(c => c.Email == email && c.Ativo);
+                .AnyAsync(c => c.Email == email);
         }
 
         public async Task<bool> CpfExistsAsync(Cpf cpf)
         {
             return await _dbSet
-                .AnyAsync(c => c.Cpf.Valor == cpf.Valor && c.Ativo);
+                .AnyAsync(c => c.Cpf.Valor == cpf.Valor);
         }
 
         public async Task<Cliente?> GetClienteWithEnderecoAsync(int clienteId)
         {
             return await _dbSet
                 .Include(c => c.Endereco)
-                .FirstOrDefaultAsync(c => c.ClienteId == clienteId && c.Ativo);
+                .FirstOrDefaultAsync(c => c.ClienteId == clienteId);
         }
 
         public async Task<IEnumerable<Cliente>> GetClientesByIdadeAsync(int idadeMinima, int idadeMaxima)
@@ -50,8 +50,7 @@ namespace Gemona.Infrastructure.Data.Repositories
 
             return await _dbSet
                 .Where(c => c.DataNascimento >= dataLimiteMin && 
-                            c.DataNascimento <= dataLimiteMax && 
-                            c.Ativo)
+                        c.DataNascimento <= dataLimiteMax)
                 .ToListAsync();
         }
     }

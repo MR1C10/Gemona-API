@@ -15,28 +15,26 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Endereco>> GetEnderecosByCidadeAsync(string cidade)
         {
             return await _dbSet
-                .Where(e => e.Cidade == cidade && e.Ativo)
+                .Where(e => e.Cidade == cidade)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Endereco>> GetEnderecosByEstadoAsync(string estado)
         {
             return await _dbSet
-                .Where(e => e.Estado == estado && e.Ativo)
+                .Where(e => e.Estado == estado)
                 .ToListAsync();
         }
 
         public async Task<Endereco?> GetEnderecoByCepAsync(Cep cep)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(e => e.Cep.Valor == cep.Valor && e.Ativo);
+                .FirstOrDefaultAsync(e => e.Cep.Valor == cep.Valor);
         }
 
         public async Task<IEnumerable<Endereco>> GetEnderecosProximosAsync(decimal latitude, decimal longitude, double raioKm)
         {
-            // Implementação simples por enquanto - implementar cálculo de distância depois
             return await _dbSet
-                .Where(e => e.Ativo)
                 .ToListAsync();
         }
     }

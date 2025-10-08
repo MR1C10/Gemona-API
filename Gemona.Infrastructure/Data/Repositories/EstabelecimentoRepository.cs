@@ -15,13 +15,13 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<Estabelecimento?> GetByCnpjAsync(Cnpj cnpj)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(e => e.Cnpj.Valor == cnpj.Valor && e.Ativo);
+                .FirstOrDefaultAsync(e => e.Cnpj.Valor == cnpj.Valor);
         }
 
         public async Task<bool> CnpjExistsAsync(Cnpj cnpj)
         {
             return await _dbSet
-                .AnyAsync(e => e.Cnpj.Valor == cnpj.Valor && e.Ativo);
+                .AnyAsync(e => e.Cnpj.Valor == cnpj.Valor);
         }
 
         public async Task<Estabelecimento?> GetEstabelecimentoCompletoAsync(int estabelecimentoId)
@@ -31,13 +31,13 @@ namespace Gemona.Infrastructure.Data.Repositories
                 .Include(e => e.Profissional)
                 .Include(e => e.HorariosFuncionamento)
                 .Include(e => e.Servicos)
-                .FirstOrDefaultAsync(e => e.EstabelecimentoId == estabelecimentoId && e.Ativo);
+                .FirstOrDefaultAsync(e => e.EstabelecimentoId == estabelecimentoId);
         }
 
         public async Task<IEnumerable<Estabelecimento>> GetEstabelecimentosByProfissionalAsync(int profissionalId)
         {
             return await _dbSet
-                .Where(e => e.ProfissionalId == profissionalId && e.Ativo)
+                .Where(e => e.ProfissionalId == profissionalId)
                 .ToListAsync();
         }
 
@@ -45,17 +45,14 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(e => e.Endereco)
-                .Where(e => e.Endereco.Cidade == cidade && e.Ativo)
+                .Where(e => e.Endereco.Cidade == cidade)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Estabelecimento>> GetEstabelecimentosProximosAsync(decimal latitude, decimal longitude, double raioKm)
         {
-            // depois implemento o filtro por distacia
-            // por enquanto retorna todos
             return await _dbSet
                 .Include(e => e.Endereco)
-                .Where(e => e.Ativo)
                 .ToListAsync();
         }
     }

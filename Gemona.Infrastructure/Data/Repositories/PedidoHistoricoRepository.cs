@@ -15,7 +15,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<IEnumerable<PedidoHistorico>> GetHistoricoByPedidoAsync(int pedidoId)
         {
             return await _dbSet
-                .Where(h => h.PedidoId == pedidoId && h.Ativo)
+                .Where(h => h.PedidoId == pedidoId)
                 .OrderByDescending(h => h.DataAlteracao)
                 .ToListAsync();
         }
@@ -23,7 +23,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<IEnumerable<PedidoHistorico>> GetHistoricoByStatusAsync(StatusPedido status)
         {
             return await _dbSet
-                .Where(h => h.StatusNovo == status && h.Ativo)
+                .Where(h => h.StatusNovo == status)
                 .OrderByDescending(h => h.DataAlteracao)
                 .ToListAsync();
         }
@@ -31,7 +31,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<PedidoHistorico?> GetUltimaAlteracaoPedidoAsync(int pedidoId)
         {
             return await _dbSet
-                .Where(h => h.PedidoId == pedidoId && h.Ativo)
+                .Where(h => h.PedidoId == pedidoId)
                 .OrderByDescending(h => h.DataAlteracao)
                 .FirstOrDefaultAsync();
         }

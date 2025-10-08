@@ -16,7 +16,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(p => p.Servico)
-                .Where(p => p.ClienteId == clienteId && p.Ativo)
+                .Where(p => p.ClienteId == clienteId)
                 .OrderByDescending(p => p.DataSolicitacao)
                 .ToListAsync();
         }
@@ -26,7 +26,7 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(p => p.Cliente)
                 .Include(p => p.Servico)
-                .Where(p => p.Servico.EstabelecimentoId == estabelecimentoId && p.Ativo)
+                .Where(p => p.Servico.EstabelecimentoId == estabelecimentoId)
                 .OrderByDescending(p => p.DataSolicitacao)
                 .ToListAsync();
         }
@@ -36,7 +36,7 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(p => p.Cliente)
                 .Include(p => p.Servico)
-                .Where(p => p.Status == status && p.Ativo)
+                .Where(p => p.Status == status)
                 .ToListAsync();
         }
 
@@ -48,14 +48,14 @@ namespace Gemona.Infrastructure.Data.Repositories
                 .ThenInclude(s => s.Estabelecimento)
                 .Include(p => p.Historicos)
                 .Include(p => p.Avaliacao)
-                .FirstOrDefaultAsync(p => p.PedidoId == pedidoId && p.Ativo);
+                .FirstOrDefaultAsync(p => p.PedidoId == pedidoId);
         }
 
         public async Task<IEnumerable<Pedido>> GetPedidosPorPeriodoAsync(DateTime dataInicio, DateTime dataFim)
         {
             return await _dbSet
                 .Where(p => p.DataSolicitacao >= dataInicio && 
-                           p.DataSolicitacao <= dataFim && p.Ativo)
+                        p.DataSolicitacao <= dataFim)
                 .ToListAsync();
         }
 
@@ -64,10 +64,9 @@ namespace Gemona.Infrastructure.Data.Repositories
             return await _dbSet
                 .Include(p => p.Servico)
                 .Where(p => p.Servico.EstabelecimentoId == estabelecimentoId &&
-                            p.Status == StatusPedido.Concluido &&
-                            p.DataConclusao >= dataInicio &&
-                            p.DataConclusao <= dataFim &&
-                            p.Ativo)
+                        p.Status == StatusPedido.Concluido &&
+                        p.DataConclusao >= dataInicio &&
+                        p.DataConclusao <= dataFim)
                 .SumAsync(p => p.ValorFinal ?? 0);
         }
     }

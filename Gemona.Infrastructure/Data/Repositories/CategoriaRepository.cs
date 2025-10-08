@@ -14,28 +14,27 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<Categoria?> GetCategoriaWithSubCategoriasAsync(int categoriaId)
         {
             return await _dbSet
-                .Include(c => c.SubCategorias.Where(sc => sc.Ativo))
-                .FirstOrDefaultAsync(c => c.CategoriaId == categoriaId && c.Ativo);
+                .Include(c => c.SubCategorias)
+                .FirstOrDefaultAsync(c => c.CategoriaId == categoriaId);
         }
 
         public async Task<IEnumerable<Categoria>> GetCategoriasWithSubCategoriasAsync()
         {
             return await _dbSet
-                .Include(c => c.SubCategorias.Where(sc => sc.Ativo))
-                .Where(c => c.Ativo)
+                .Include(c => c.SubCategorias)
                 .ToListAsync();
         }
 
         public async Task<Categoria?> GetByNomeAsync(string nome)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Nome == nome && c.Ativo);
+                .FirstOrDefaultAsync(c => c.Nome == nome);
         }
 
         public async Task<bool> NomeExistsAsync(string nome)
         {
             return await _dbSet
-                .AnyAsync(c => c.Nome == nome && c.Ativo);
+                .AnyAsync(c => c.Nome == nome);
         }
     }
 }
