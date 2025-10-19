@@ -1,5 +1,3 @@
-using System.Data;
-
 namespace Gemona.Application.DTOs.Shared
 {
     public class LoginResponse

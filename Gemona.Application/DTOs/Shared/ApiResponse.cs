@@ -1,4 +1,4 @@
-namespace Gemona.Application.DTOs.Response
+namespace Gemona.Application.DTOs.Shared
 {
     public class ApiResponse<T>
     {
@@ -17,7 +17,7 @@ namespace Gemona.Application.DTOs.Response
             };
         }
 
-        public static ApiResponse<T> ErrorsResult(string message, List<string>? errors = null)
+        public static ApiResponse<T> ErrorResult(string message, List<string>? errors = null)
         {
             return new ApiResponse<T>
             {

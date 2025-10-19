@@ -1,6 +1,6 @@
 namespace Gemona.Application.DTOs.Shared
 {
-    public class BaseResponse
+    public abstract class BaseResponse
     {
         public DateTime DataCriacao { get; set; }
         public DateTime? DataAtualizacao { get; set; }
