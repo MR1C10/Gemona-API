@@ -40,7 +40,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(p => p.Estabelecimento)
-                .FirstOrDefaultAsync(p => p.ProfissionalId == profissionalId);
+                .FirstOrDefaultAsync(p => p.Id == profissionalId);
         }
     }
 }

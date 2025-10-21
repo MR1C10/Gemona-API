@@ -1,13 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Gemona.Application.Interfaces.Repositories;
 using Gemona.Infrastructure.Data.Context;
-using Gemona.Domain.Entities;
 
 namespace Gemona.Infrastructure.Data.Repositories
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
+    public class BaseRepository<T> : IBaseRepository<T> where T : class // ← MUDOU: BaseEntity para class
     {
-       protected readonly ApplicationDbContext _context;
+        protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
         public BaseRepository(ApplicationDbContext context)
@@ -28,7 +27,13 @@ namespace Gemona.Infrastructure.Data.Repositories
 
         public virtual async Task<IEnumerable<T>> GetAllActiveAsync()
         {
-            return await _dbSet.Where(x => x.Ativo).ToListAsync();
+            // Para entidades com Identity, verificar se tem propriedade Ativo
+            var activeProperty = typeof(T).GetProperty("Ativo");
+            if (activeProperty != null)
+            {
+                return await _dbSet.Where(x => EF.Property<bool>(x, "Ativo")).ToListAsync();
+            }
+            return await _dbSet.ToListAsync();
         }
 
         public virtual async Task<T> AddAsync(T entity)
@@ -48,18 +53,34 @@ namespace Gemona.Infrastructure.Data.Repositories
             var entity = await GetByIdAsync(id);
             if (entity != null)
             {
-                entity.Ativo = false; //soft delete
+                // Verificar se tem propriedade Ativo
+                var ativoProperty = typeof(T).GetProperty("Ativo");
+                if (ativoProperty != null)
+                {
+                    ativoProperty.SetValue(entity, false); // soft delete
+                }
             }
         }
 
         public virtual async Task<bool> ExistsAsync(int id)
         {
-            return await _dbSet.AnyAsync(x => x.Ativo && EF.Property<int>(x, "Id") == id);
+            // Verificar se tem propriedade Ativo
+            var activeProperty = typeof(T).GetProperty("Ativo");
+            if (activeProperty != null)
+            {
+                return await _dbSet.AnyAsync(x => EF.Property<bool>(x, "Ativo") && EF.Property<int>(x, "Id") == id);
+            }
+            return await _dbSet.AnyAsync(x => EF.Property<int>(x, "Id") == id);
         }
 
         public virtual async Task<int> CountAsync()
         {
-            return await _dbSet.CountAsync(x => x.Ativo);
+            var activeProperty = typeof(T).GetProperty("Ativo");
+            if (activeProperty != null)
+            {
+                return await _dbSet.CountAsync(x => EF.Property<bool>(x, "Ativo"));
+            }
+            return await _dbSet.CountAsync();
         }
 
         public virtual async Task SaveChangesAsync()

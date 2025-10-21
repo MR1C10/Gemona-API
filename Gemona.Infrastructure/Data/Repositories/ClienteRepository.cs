@@ -40,7 +40,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(c => c.Endereco)
-                .FirstOrDefaultAsync(c => c.ClienteId == clienteId);
+                .FirstOrDefaultAsync(c => c.Id == clienteId); // ← MUDOU: ClienteId para Id
         }
 
         public async Task<IEnumerable<Cliente>> GetClientesByIdadeAsync(int idadeMinima, int idadeMaxima)
@@ -50,7 +50,7 @@ namespace Gemona.Infrastructure.Data.Repositories
 
             return await _dbSet
                 .Where(c => c.DataNascimento >= dataLimiteMin && 
-                        c.DataNascimento <= dataLimiteMax)
+                           c.DataNascimento <= dataLimiteMax)
                 .ToListAsync();
         }
     }
