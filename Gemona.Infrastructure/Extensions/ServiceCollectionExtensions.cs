@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,18 @@ namespace Gemona.Infrastructure.Extensions
                     configuration.GetConnectionString("DefaultConnection"),
                     ServerVersion.AutoDetect(configuration.GetConnectionString("DefaultConnection"))
                 ));
+
+            services.AddDefaultIdentity<IdentityUser<int>>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddScoped<IClienteRepository, ClienteRepository>();
             services.AddScoped<IProfissionalRepository, ProfissionalRepository>();
