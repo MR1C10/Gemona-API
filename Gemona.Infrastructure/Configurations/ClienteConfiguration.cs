@@ -9,83 +9,46 @@ namespace Gemona.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Cliente> builder)
         {
-            builder.ToTable("cliente");
-
-            builder.HasKey(c => c.ClienteId);
-            builder.Property(c => c.ClienteId).HasColumnName("cliente_id");
+            builder.ToTable("Clientes");
 
             builder.Property(c => c.Nome)
-                .HasColumnName("nome")
-                .HasMaxLength(150)
-                .IsRequired();
-
-            builder.Property(c => c.Email)
-                .HasColumnName("email")
-                .HasMaxLength(150)
-                .IsRequired();
-
-            builder.HasIndex(c => c.Email).IsUnique();
-
-            builder.Property(c => c.Telefone)
-                .HasColumnName("telefone")
-                .HasMaxLength(20)
+                .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(c => c.Cpf)
-                .HasColumnName("cpf")
-                .HasMaxLength(11)
                 .HasConversion(
                     cpf => cpf.Valor,
                     valor => new Cpf(valor))
+                .HasMaxLength(11)
                 .IsRequired();
 
-            builder.HasIndex(c => c.Cpf).IsUnique();
+            builder.HasIndex(c => c.Cpf)
+                .IsUnique();
 
             builder.Property(c => c.ImagemPerfilUrl)
-                .HasColumnName("imagem_perfil_url")
-                .HasMaxLength(255);
-
-            builder.Property(c => c.EnderecoId)
-                .HasColumnName("endereco_id");
-
-            builder.Property(c => c.DataNascimento)
-                .HasColumnName("data_nascimento")
-                .HasColumnType("DATE")
-                .IsRequired();
-
-            builder.Property(c => c.SenhaHash)
-                .HasColumnName("senha_hash")
-                .HasMaxLength(255)
-                .IsRequired();
+                .HasMaxLength(500);
 
             builder.Property(c => c.DataCriacao)
-                .HasColumnName("data_criacao")
-                .HasColumnType("DATETIME(6)")
                 .IsRequired();
-
-            builder.Property(c => c.DataAtualizacao)
-                .HasColumnName("data_atualizacao")
-                .HasColumnType("DATETIME(6)");
 
             builder.Property(c => c.Ativo)
-                .HasColumnName("ativo")
-                .HasDefaultValue(true)
-                .IsRequired();
+                .HasDefaultValue(true);
 
+            // Relacionamentos
             builder.HasOne(c => c.Endereco)
-                .WithOne(e => e.Cliente)
-                .HasForeignKey<Cliente>(c => c.EnderecoId)
+                .WithMany()
+                .HasForeignKey(c => c.EnderecoId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasMany(c => c.Pedidos)
                 .WithOne(p => p.Cliente)
                 .HasForeignKey(p => p.ClienteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(c => c.Avaliacoes)
                 .WithOne(a => a.Cliente)
                 .HasForeignKey(a => a.ClienteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
