@@ -1,6 +1,12 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=seu_banco;User=root;Password=sua;Port=3306"
+    "DefaultConnection": "Server=localhost;Database=nome_do_banco;User=root;Password=sua_senha;Port=3306"
+  },
+  "Jwt": {
+    "Key": "ChaveSecretaSuperSeguraParaJWT12345678901234567890",
+    "Issuer": "GemonaAPI",
+    "Audience": "GemonaClients",
+    "ExpireDays": 7
   },
   "Logging": {
     "LogLevel": {
