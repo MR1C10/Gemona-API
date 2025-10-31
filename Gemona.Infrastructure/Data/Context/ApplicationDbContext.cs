@@ -9,6 +9,7 @@ namespace Gemona.Infrastructure.Data.Context
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        public DbSet<Admin> Admins { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Profissional> Profissionais { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
