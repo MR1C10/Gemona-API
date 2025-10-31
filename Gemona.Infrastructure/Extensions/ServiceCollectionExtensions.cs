@@ -22,7 +22,8 @@ namespace Gemona.Infrastructure.Extensions
                     ServerVersion.AutoDetect(configuration.GetConnectionString("DefaultConnection"))
                 ));
 
-            services.AddDefaultIdentity<IdentityUser<int>>(options =>
+            // Configurar Identity
+            services.AddIdentityCore<Cliente>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -32,7 +33,34 @@ namespace Gemona.Infrastructure.Extensions
                 options.User.RequireUniqueEmail = true;
             })
             .AddRoles<IdentityRole<int>>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            services.AddIdentityCore<Profissional>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            services.AddIdentityCore<Admin>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 8;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
             // Repositórios
             services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -60,10 +88,6 @@ namespace Gemona.Infrastructure.Extensions
             services.AddScoped<IPedidoService, PedidoService>();
             services.AddScoped<IAvaliacaoService, AvaliacaoService>();
             services.AddScoped<IAuthService, AuthService>();
-
-            // Configurar UserManager para Cliente e Profissional
-            services.AddScoped<UserManager<Cliente>>();
-            services.AddScoped<UserManager<Profissional>>();
 
             return services;
         }

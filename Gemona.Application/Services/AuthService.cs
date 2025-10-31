@@ -11,15 +11,18 @@ namespace Gemona.Application.Services
     {
         private readonly UserManager<Cliente> _clienteUserManager;
         private readonly UserManager<Profissional> _profissionalUserManager;
+        private readonly UserManager<Admin> _adminUserManager;
         private readonly IJwtService _jwtService;
 
         public AuthService(
             UserManager<Cliente> clienteUserManager,
             UserManager<Profissional> profissionalUserManager,
+            UserManager<Admin> adminUserManager,
             IJwtService jwtService)
         {
             _clienteUserManager = clienteUserManager;
             _profissionalUserManager = profissionalUserManager;
+            _adminUserManager = adminUserManager;
             _jwtService = jwtService;
         }
 
@@ -176,6 +179,30 @@ namespace Gemona.Application.Services
                     }
                 }
 
+                // Tentar login como admin
+                var admin = await _adminUserManager.FindByEmailAsync(email);
+                if (admin != null && admin.Ativo)
+                {
+                    var adminResult = await _adminUserManager.CheckPasswordAsync(admin, senha);
+                    if (adminResult)
+                    {
+                        var token = _jwtService.GenerateTokenForAdmin(admin);
+                        var expiresAt = DateTime.UtcNow.AddDays(7);
+
+                        var response = new LoginResponse
+                        {
+                            Token = token,
+                            ExpiresAt = expiresAt,
+                            UserType = "Admin",
+                            UserId = admin.Id,
+                            Nome = admin.Nome,
+                            Email = admin.Email ?? string.Empty
+                        };
+
+                        return ApiResponse<LoginResponse>.SuccessResult(response, "Login realizado com sucesso");
+                    }
+                }
+
                 return ApiResponse<LoginResponse>.ErrorResult("Email ou senha incorretos");
             }
             catch (Exception ex)
@@ -303,6 +330,29 @@ namespace Gemona.Application.Services
 
                     return ApiResponse<LoginResponse>.SuccessResult(response, "Token renovado com sucesso");
                 }
+                else if (userType == "Admin")
+                {
+                    var admin = await _adminUserManager.FindByIdAsync(userId.Value.ToString());
+                    if (admin == null || !admin.Ativo)
+                    {
+                        return ApiResponse<LoginResponse>.ErrorResult("Usuário não encontrado ou inativo");
+                    }
+
+                    var newToken = _jwtService.GenerateTokenForAdmin(admin);
+                    var expiresAt = DateTime.UtcNow.AddDays(7);
+
+                    var response = new LoginResponse
+                    {
+                        Token = newToken,
+                        ExpiresAt = expiresAt,
+                        UserType = "Admin",
+                        UserId = admin.Id,
+                        Nome = admin.Nome,
+                        Email = admin.Email ?? string.Empty
+                    };
+
+                    return ApiResponse<LoginResponse>.SuccessResult(response, "Token renovado com sucesso");
+                }
 
                 return ApiResponse<LoginResponse>.ErrorResult("Tipo de usuário inválido");
             }
@@ -310,6 +360,54 @@ namespace Gemona.Application.Services
             {
                 return ApiResponse<LoginResponse>.ErrorResult(
                     "Erro ao renovar token", new List<string> { ex.Message });
+            }
+        }
+
+        public async Task<ApiResponse<LoginResponse>> LoginAdminAsync(string email, string senha)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(senha))
+                {
+                    return ApiResponse<LoginResponse>.ErrorResult("Email e senha são obrigatórios");
+                }
+
+                var admin = await _adminUserManager.FindByEmailAsync(email);
+                if (admin == null)
+                {
+                    return ApiResponse<LoginResponse>.ErrorResult("Email ou senha incorretos");
+                }
+
+                if (!admin.Ativo)
+                {
+                    return ApiResponse<LoginResponse>.ErrorResult("Usuário inativo");
+                }
+
+                var result = await _adminUserManager.CheckPasswordAsync(admin, senha);
+                if (!result)
+                {
+                    return ApiResponse<LoginResponse>.ErrorResult("Email ou senha incorretos");
+                }
+
+                var token = _jwtService.GenerateTokenForAdmin(admin);
+                var expiresAt = DateTime.UtcNow.AddDays(7);
+
+                var response = new LoginResponse
+                {
+                    Token = token,
+                    ExpiresAt = expiresAt,
+                    UserType = "Admin",
+                    UserId = admin.Id,
+                    Nome = admin.Nome,
+                    Email = admin.Email ?? string.Empty
+                };
+
+                return ApiResponse<LoginResponse>.SuccessResult(response, "Login realizado com sucesso");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<LoginResponse>.ErrorResult(
+                    "Erro ao realizar login", new List<string> { ex.Message });
             }
         }
     }

@@ -8,6 +8,7 @@ namespace Gemona.Application.Interfaces.Services
     {
         Task<ApiResponse<LoginResponse>> LoginClienteAsync(LoginClienteRequest request);
         Task<ApiResponse<LoginResponse>> LoginProfissionalAsync(LoginProfissionalRequest request);
+        Task<ApiResponse<LoginResponse>> LoginAdminAsync(string email, string senha);
         Task<ApiResponse<LoginResponse>> LoginAsync(string email, string senha);
         Task<ApiResponse<bool>> ValidateTokenAsync(string token);
         Task<ApiResponse<LoginResponse>> RefreshTokenAsync(string token);

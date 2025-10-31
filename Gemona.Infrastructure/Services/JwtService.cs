@@ -53,6 +53,21 @@ namespace Gemona.Infrastructure.Services
             return GenerateToken(claims);
         }
 
+        public string GenerateTokenForAdmin(Admin admin)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+                new Claim(ClaimTypes.Name, admin.Nome),
+                new Claim(ClaimTypes.Email, admin.Email ?? string.Empty),
+                new Claim("UserType", "Admin"),
+                new Claim("GithubUsername", admin.GithubUsername),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
+
+            return GenerateToken(claims);
+        }
+
         public bool ValidateToken(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
