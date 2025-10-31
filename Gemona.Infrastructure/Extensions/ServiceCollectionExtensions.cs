@@ -4,7 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Gemona.Infrastructure.Data.Context;
 using Gemona.Application.Interfaces.Repositories;
+using Gemona.Application.Interfaces.Services;
+using Gemona.Application.Services;
 using Gemona.Infrastructure.Data.Repositories;
+using Gemona.Infrastructure.Services;
+using Gemona.Domain.Entities;
 
 namespace Gemona.Infrastructure.Extensions
 {
@@ -30,6 +34,7 @@ namespace Gemona.Infrastructure.Extensions
             .AddRoles<IdentityRole<int>>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            // Repositórios
             services.AddScoped<IClienteRepository, ClienteRepository>();
             services.AddScoped<IProfissionalRepository, ProfissionalRepository>();
             services.AddScoped<IEstabelecimentoRepository, EstabelecimentoRepository>();
@@ -41,6 +46,24 @@ namespace Gemona.Infrastructure.Extensions
             services.AddScoped<IEnderecoRepository, EnderecoRepository>();
             services.AddScoped<IHorarioFuncionamentoRepository, HorarioFuncionamentoRepository>();
             services.AddScoped<IPedidoHistoricoRepository, PedidoHistoricoRepository>();
+
+            // Services de Infraestrutura
+            services.AddScoped<IJwtService, JwtService>();
+
+            // Services de Aplicação
+            services.AddScoped<ICategoriaService, CategoriaService>();
+            services.AddScoped<ISubCategoriaService, SubCategoriaService>();
+            services.AddScoped<IClienteService, ClienteService>();
+            services.AddScoped<IProfissionalService, ProfissionalService>();
+            services.AddScoped<IEstabelecimentoService, EstabelecimentoService>();
+            services.AddScoped<IServicoService, ServicoService>();
+            services.AddScoped<IPedidoService, PedidoService>();
+            services.AddScoped<IAvaliacaoService, AvaliacaoService>();
+            services.AddScoped<IAuthService, AuthService>();
+
+            // Configurar UserManager para Cliente e Profissional
+            services.AddScoped<UserManager<Cliente>>();
+            services.AddScoped<UserManager<Profissional>>();
 
             return services;
         }
