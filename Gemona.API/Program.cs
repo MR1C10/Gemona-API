@@ -7,6 +7,8 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Gemona.API.Middlewares;
 using Serilog;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 // Configuração inicial do Serilog
 Log.Logger = new LoggerConfiguration()
@@ -130,6 +132,15 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Configuração Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<Gemona.Infrastructure.Data.Context.ApplicationDbContext>(
+        name: "database",
+        tags: new[] { "db", "sql", "mysql" })
+    .AddCheck("api", () => 
+        Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API está respondendo"),
+        tags: new[] { "api" });
+
 // Configuração JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -209,6 +220,40 @@ else
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health Check Endpoints
+app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(x => new
+            {
+                name = x.Key,
+                status = x.Value.Status.ToString(),
+                description = x.Value.Description,
+                duration = x.Value.Duration.ToString(),
+                tags = x.Value.Tags
+            }),
+            totalDuration = report.TotalDuration.ToString()
+        };
+        await context.Response.WriteAsJsonAsync(response);
+    }
+});
+
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("db")
+});
+
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("api")
+});
+
 app.MapControllers();
 
 app.Run();
