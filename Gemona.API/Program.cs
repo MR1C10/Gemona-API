@@ -5,8 +5,34 @@ using System.Text;
 using Gemona.Infrastructure.Extensions;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Gemona.API.Middlewares;
+using Serilog;
+
+// Configuração inicial do Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "Gemona.API")
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/gemona-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+        retainedFileCountLimit: 30)
+    .CreateLogger();
+
+try
+{
+    Log.Information("Iniciando aplicação Gemona API");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Adiciona Serilog ao host
+builder.Host.UseSerilog();
 
 // Configuração HTTPS
 builder.Services.AddHttpsRedirection(options =>
@@ -157,6 +183,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Middleware de tratamento global de exceções (deve ser o primeiro)
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -183,3 +212,12 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Aplicação encerrada inesperadamente");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

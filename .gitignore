@@ -9,6 +9,7 @@ obj/
 
 # Logs
 *.log
+logs/
 
 # OS files
 Thumbs.db
