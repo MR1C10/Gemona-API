@@ -3,6 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Gemona.Infrastructure.Extensions;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +52,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// Configuração FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<Gemona.Application.Validators.Categoria.CreateCategoriaRequestValidator>();
+
 builder.Services.AddEndpointsApiExplorer();
 
 // Configuração Swagger com autenticação JWT
