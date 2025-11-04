@@ -6,6 +6,7 @@ using Gemona.Application.DTOs.Shared;
 using Gemona.Application.Interfaces.Repositories;
 using Gemona.Application.Interfaces.Services;
 using Gemona.Domain.Entities;
+using Gemona.Application.Exceptions;
 
 namespace Gemona.Application.Services
 {
@@ -27,172 +28,109 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetAllAsync()
         {
-            try
-            {
-                var servicos = await _servicoRepository.GetAllActiveAsync();
-                var response = servicos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
-                    response, "Serviços recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços", new List<string> { ex.Message });
-            }
+            var servicos = await _servicoRepository.GetAllActiveAsync();
+            var response = servicos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
+                response, "Serviços recuperados com sucesso");
         }
 
         public async Task<ApiResponse<ServicoResponse?>> GetByIdAsync(int id)
         {
-            try
+            var servico = await _servicoRepository.GetByIdAsync(id);
+            if (servico == null)
             {
-                var servico = await _servicoRepository.GetByIdAsync(id);
-                if (servico == null)
-                {
-                    return ApiResponse<ServicoResponse?>.ErrorResult("Serviço não encontrado");
-                }
+                throw new NotFoundException("Serviço", id);
+            }
 
-                var response = MapToResponse(servico);
-                return ApiResponse<ServicoResponse?>.SuccessResult(
-                    response, "Serviço encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ServicoResponse?>.ErrorResult(
-                    "Erro ao buscar serviço", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(servico);
+            return ApiResponse<ServicoResponse?>.SuccessResult(
+                response, "Serviço encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ServicoCompletoResponse?>> GetServicoCompletoAsync(int servicoId)
         {
-            try
+            var servico = await _servicoRepository.GetServicoCompletoAsync(servicoId);
+            if (servico == null)
             {
-                var servico = await _servicoRepository.GetServicoCompletoAsync(servicoId);
-                if (servico == null)
-                {
-                    return ApiResponse<ServicoCompletoResponse?>.ErrorResult("Serviço não encontrado");
-                }
+                throw new NotFoundException("Serviço", servicoId);
+            }
 
-                var response = MapToResponseCompleto(servico);
-                return ApiResponse<ServicoCompletoResponse?>.SuccessResult(
-                    response, "Serviço completo encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ServicoCompletoResponse?>.ErrorResult(
-                    "Erro ao buscar serviço completo", new List<string> { ex.Message });
-            }
+            var response = MapToResponseCompleto(servico);
+            return ApiResponse<ServicoCompletoResponse?>.SuccessResult(
+                response, "Serviço completo encontrado com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetServicosByEstabelecimentoAsync(int estabelecimentoId)
         {
-            try
-            {
-                var servicos = await _servicoRepository.GetServicosByEstabelecimentoAsync(estabelecimentoId);
-                var response = servicos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
-                    response, "Serviços do estabelecimento recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços do estabelecimento", new List<string> { ex.Message });
-            }
+            var servicos = await _servicoRepository.GetServicosByEstabelecimentoAsync(estabelecimentoId);
+            var response = servicos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
+                response, "Serviços do estabelecimento recuperados com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetServicosByCategoriaAsync(int categoriaId)
         {
-            try
-            {
-                var servicos = await _servicoRepository.GetServicosByCategoriaAsync(categoriaId);
-                var response = servicos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
-                    response, "Serviços da categoria recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços da categoria", new List<string> { ex.Message });
-            }
+            var servicos = await _servicoRepository.GetServicosByCategoriaAsync(categoriaId);
+            var response = servicos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
+                response, "Serviços da categoria recuperados com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetServicosBySubCategoriaAsync(int subCategoriaId)
         {
-            try
-            {
-                var servicos = await _servicoRepository.GetServicosBySubCategoriaAsync(subCategoriaId);
-                var response = servicos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
-                    response, "Serviços da subcategoria recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços da subcategoria", new List<string> { ex.Message });
-            }
+            var servicos = await _servicoRepository.GetServicosBySubCategoriaAsync(subCategoriaId);
+            var response = servicos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
+                response, "Serviços da subcategoria recuperados com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetServicosByFaixaPrecoAsync(decimal precoMinimo, decimal precoMaximo)
         {
-            try
+            if (precoMinimo < 0 || precoMaximo < 0)
             {
-                if (precoMinimo < 0 || precoMaximo < 0)
-                {
-                    return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                        "Os preços não podem ser negativos");
-                }
-
-                if (precoMinimo > precoMaximo)
-                {
-                    return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                        "O preço mínimo não pode ser maior que o preço máximo");
-                }
-
-                var servicos = await _servicoRepository.GetServicosByFaixaPrecoAsync(precoMinimo, precoMaximo);
-                var response = servicos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
-                    response, $"Serviços entre R$ {precoMinimo:N2} e R$ {precoMaximo:N2} recuperados com sucesso");
+                throw new BusinessException("Os preços não podem ser negativos");
             }
-            catch (Exception ex)
+
+            if (precoMinimo > precoMaximo)
             {
-                return ApiResponse<IEnumerable<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços por faixa de preço", new List<string> { ex.Message });
+                throw new BusinessException("O preço mínimo não pode ser maior que o preço máximo");
             }
+
+            var servicos = await _servicoRepository.GetServicosByFaixaPrecoAsync(precoMinimo, precoMaximo);
+            var response = servicos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ServicoResponse>>.SuccessResult(
+                response, $"Serviços entre R$ {precoMinimo:N2} e R$ {precoMaximo:N2} recuperados com sucesso");
         }
 
         public async Task<ApiResponse<PagedResponse<ServicoResponse>>> BuscarServicosAsync(BuscarServicosRequest request)
         {
-            try
+            // Validações
+            if (request.PageNumber < 1)
+                request.PageNumber = 1;
+            
+            if (request.PageSize < 1 || request.PageSize > 100)
+                request.PageSize = 10;
+
+            if (request.PrecoMinimo.HasValue && request.PrecoMinimo < 0)
             {
-                // Validações
-                if (request.PageNumber < 1)
-                    request.PageNumber = 1;
-                
-                if (request.PageSize < 1 || request.PageSize > 100)
-                    request.PageSize = 10;
+                throw new BusinessException("O preço mínimo não pode ser negativo");
+            }
 
-                if (request.PrecoMinimo.HasValue && request.PrecoMinimo < 0)
-                {
-                    return ApiResponse<PagedResponse<ServicoResponse>>.ErrorResult(
-                        "O preço mínimo não pode ser negativo");
-                }
+            if (request.PrecoMaximo.HasValue && request.PrecoMaximo < 0)
+            {
+                throw new BusinessException("O preço máximo não pode ser negativo");
+            }
 
-                if (request.PrecoMaximo.HasValue && request.PrecoMaximo < 0)
-                {
-                    return ApiResponse<PagedResponse<ServicoResponse>>.ErrorResult(
-                        "O preço máximo não pode ser negativo");
-                }
-
-                if (request.PrecoMinimo.HasValue && request.PrecoMaximo.HasValue && 
-                    request.PrecoMinimo > request.PrecoMaximo)
-                {
-                    return ApiResponse<PagedResponse<ServicoResponse>>.ErrorResult(
-                        "O preço mínimo não pode ser maior que o preço máximo");
-                }
+            if (request.PrecoMinimo.HasValue && request.PrecoMaximo.HasValue && 
+                request.PrecoMinimo > request.PrecoMaximo)
+            {
+                throw new BusinessException("O preço mínimo não pode ser maior que o preço máximo");
+            }
 
                 // Buscar todos os serviços ativos
                 var servicosQuery = await _servicoRepository.GetAllActiveAsync();
@@ -264,126 +202,96 @@ namespace Gemona.Application.Services
 
                 return ApiResponse<PagedResponse<ServicoResponse>>.SuccessResult(
                     pagedResponse, $"{totalRegistros} serviço(s) encontrado(s)");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<PagedResponse<ServicoResponse>>.ErrorResult(
-                    "Erro ao buscar serviços", new List<string> { ex.Message });
-            }
         }
 
         public async Task<ApiResponse<ServicoResponse>> CreateAsync(CreateServicoRequest request)
         {
-            try
+            // Validações
+            if (request.Preco < 0)
             {
-                // Validações
-                if (request.Preco < 0)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("O preço não pode ser negativo");
-                }
-
-                // Verificar se estabelecimento existe
-                var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(request.EstabelecimentoId);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("Estabelecimento não encontrado");
-                }
-
-                // Verificar se subcategoria existe
-                var subCategoria = await _subCategoriaRepository.GetByIdAsync(request.SubCategoriaId);
-                if (subCategoria == null)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("Subcategoria não encontrada");
-                }
-
-                var servico = new Servico
-                {
-                    Nome = request.Nome,
-                    Descricao = request.Descricao,
-                    SubCategoriaId = request.SubCategoriaId,
-                    Preco = request.Preco,
-                    ImagemServicoUrl = request.ImagemServicoUrl,
-                    EstabelecimentoId = request.EstabelecimentoId
-                };
-
-                var result = await _servicoRepository.AddAsync(servico);
-                await _servicoRepository.SaveChangesAsync();
-
-                var response = MapToResponse(result);
-                return ApiResponse<ServicoResponse>.SuccessResult(
-                    response, "Serviço criado com sucesso");
+                throw new BusinessException("O preço não pode ser negativo");
             }
-            catch (Exception ex)
+
+            // Verificar se estabelecimento existe
+            var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(request.EstabelecimentoId);
+            if (estabelecimento == null)
             {
-                return ApiResponse<ServicoResponse>.ErrorResult(
-                    "Erro ao criar serviço", new List<string> { ex.Message });
+                throw new NotFoundException("Estabelecimento", request.EstabelecimentoId);
             }
+
+            // Verificar se subcategoria existe
+            var subCategoria = await _subCategoriaRepository.GetByIdAsync(request.SubCategoriaId);
+            if (subCategoria == null)
+            {
+                throw new NotFoundException("Subcategoria", request.SubCategoriaId);
+            }
+
+            var servico = new Servico
+            {
+                Nome = request.Nome,
+                Descricao = request.Descricao,
+                SubCategoriaId = request.SubCategoriaId,
+                Preco = request.Preco,
+                ImagemServicoUrl = request.ImagemServicoUrl,
+                EstabelecimentoId = request.EstabelecimentoId
+            };
+
+            var result = await _servicoRepository.AddAsync(servico);
+            await _servicoRepository.SaveChangesAsync();
+
+            var response = MapToResponse(result);
+            return ApiResponse<ServicoResponse>.SuccessResult(
+                response, "Serviço criado com sucesso");
         }
 
         public async Task<ApiResponse<ServicoResponse>> UpdateAsync(int id, UpdateServicoRequest request)
         {
-            try
+            var servico = await _servicoRepository.GetByIdAsync(id);
+            if (servico == null)
             {
-                var servico = await _servicoRepository.GetByIdAsync(id);
-                if (servico == null)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("Serviço não encontrado");
-                }
-
-                // Validações
-                if (request.Preco < 0)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("O preço não pode ser negativo");
-                }
-
-                // Verificar se subcategoria existe
-                var subCategoria = await _subCategoriaRepository.GetByIdAsync(request.SubCategoriaId);
-                if (subCategoria == null)
-                {
-                    return ApiResponse<ServicoResponse>.ErrorResult("Subcategoria não encontrada");
-                }
-
-                servico.Nome = request.Nome;
-                servico.Descricao = request.Descricao;
-                servico.SubCategoriaId = request.SubCategoriaId;
-                servico.Preco = request.Preco;
-                servico.ImagemServicoUrl = request.ImagemServicoUrl;
-                servico.DataAtualizacao = DateTime.UtcNow;
-
-                await _servicoRepository.UpdateAsync(servico);
-                await _servicoRepository.SaveChangesAsync();
-
-                var response = MapToResponse(servico);
-                return ApiResponse<ServicoResponse>.SuccessResult(
-                    response, "Serviço atualizado com sucesso");
+                throw new NotFoundException("Serviço", id);
             }
-            catch (Exception ex)
+
+            // Validações
+            if (request.Preco < 0)
             {
-                return ApiResponse<ServicoResponse>.ErrorResult(
-                    "Erro ao atualizar serviço", new List<string> { ex.Message });
+                throw new BusinessException("O preço não pode ser negativo");
             }
+
+            // Verificar se subcategoria existe
+            var subCategoria = await _subCategoriaRepository.GetByIdAsync(request.SubCategoriaId);
+            if (subCategoria == null)
+            {
+                throw new NotFoundException("Subcategoria", request.SubCategoriaId);
+            }
+
+            servico.Nome = request.Nome;
+            servico.Descricao = request.Descricao;
+            servico.SubCategoriaId = request.SubCategoriaId;
+            servico.Preco = request.Preco;
+            servico.ImagemServicoUrl = request.ImagemServicoUrl;
+            servico.DataAtualizacao = DateTime.UtcNow;
+
+            await _servicoRepository.UpdateAsync(servico);
+            await _servicoRepository.SaveChangesAsync();
+
+            var response = MapToResponse(servico);
+            return ApiResponse<ServicoResponse>.SuccessResult(
+                response, "Serviço atualizado com sucesso");
         }
 
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
         {
-            try
+            var servico = await _servicoRepository.GetByIdAsync(id);
+            if (servico == null)
             {
-                var servico = await _servicoRepository.GetByIdAsync(id);
-                if (servico == null)
-                {
-                    return ApiResponse<bool>.ErrorResult("Serviço não encontrado");
-                }
-
-                await _servicoRepository.DeleteAsync(id);
-                await _servicoRepository.SaveChangesAsync();
-
-                return ApiResponse<bool>.SuccessResult(true, "Serviço excluído com sucesso");
+                throw new NotFoundException("Serviço", id);
             }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao excluir serviço", new List<string> { ex.Message });
-            }
+
+            await _servicoRepository.DeleteAsync(id);
+            await _servicoRepository.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResult(true, "Serviço excluído com sucesso");
         }
 
         // Métodos auxiliares

@@ -3,6 +3,7 @@ using Gemona.Application.DTOs.Request.Cliente;
 using Gemona.Application.DTOs.Response.Cliente;
 using Gemona.Application.DTOs.Response.Endereco;
 using Gemona.Application.DTOs.Shared;
+using Gemona.Application.Exceptions;
 using Gemona.Application.Interfaces.Repositories;
 using Gemona.Application.Interfaces.Services;
 using Gemona.Domain.Entities;
@@ -28,208 +29,149 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<ClienteResponse>>> GetAllAsync()
         {
-            try
-            {
-                var clientes = await _clienteRepository.GetAllActiveAsync();
-                var response = clientes.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
-                    response, "Clientes recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ClienteResponse>>.ErrorResult(
-                    "Erro ao buscar clientes", new List<string> { ex.Message });
-            }
+            var clientes = await _clienteRepository.GetAllActiveAsync();
+            var response = clientes.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
+                response, "Clientes recuperados com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetByIdAsync(int id)
         {
-            try
+            var cliente = await _userManager.FindByIdAsync(id.ToString());
+            if (cliente == null)
             {
-                var cliente = await _userManager.FindByIdAsync(id.ToString());
-                if (cliente == null)
-                {
-                    return ApiResponse<ClienteResponse?>.ErrorResult("Cliente não encontrado");
-                }
+                throw new NotFoundException("Cliente", id);
+            }
 
-                var response = MapToResponse(cliente);
-                return ApiResponse<ClienteResponse?>.SuccessResult(
-                    response, "Cliente encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClienteResponse?>.ErrorResult(
-                    "Erro ao buscar cliente", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(cliente);
+            return ApiResponse<ClienteResponse?>.SuccessResult(
+                response, "Cliente encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetByEmailAsync(string email)
         {
-            try
+            var cliente = await _userManager.FindByEmailAsync(email);
+            if (cliente == null)
             {
-                var cliente = await _userManager.FindByEmailAsync(email);
-                if (cliente == null)
-                {
-                    return ApiResponse<ClienteResponse?>.ErrorResult("Cliente não encontrado");
-                }
+                throw new NotFoundException($"Cliente com email '{email}' não foi encontrado");
+            }
 
-                var response = MapToResponse(cliente);
-                return ApiResponse<ClienteResponse?>.SuccessResult(
-                    response, "Cliente encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClienteResponse?>.ErrorResult(
-                    "Erro ao buscar cliente", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(cliente);
+            return ApiResponse<ClienteResponse?>.SuccessResult(
+                response, "Cliente encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetByCpfAsync(string cpf)
         {
-            try
+            var cpfValueObject = new Cpf(cpf);
+            var cliente = await _clienteRepository.GetByCpfAsync(cpfValueObject);
+            if (cliente == null)
             {
-                var cpfValueObject = new Cpf(cpf);
-                var cliente = await _clienteRepository.GetByCpfAsync(cpfValueObject);
-                if (cliente == null)
-                {
-                    return ApiResponse<ClienteResponse?>.ErrorResult("Cliente não encontrado");
-                }
+                throw new NotFoundException($"Cliente com CPF '{cpf}' não foi encontrado");
+            }
 
-                var response = MapToResponse(cliente);
-                return ApiResponse<ClienteResponse?>.SuccessResult(
-                    response, "Cliente encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClienteResponse?>.ErrorResult(
-                    "Erro ao buscar cliente", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(cliente);
+            return ApiResponse<ClienteResponse?>.SuccessResult(
+                response, "Cliente encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetClienteWithEnderecoAsync(int clienteId)
         {
-            try
+            var cliente = await _clienteRepository.GetClienteWithEnderecoAsync(clienteId);
+            if (cliente == null)
             {
-                var cliente = await _clienteRepository.GetClienteWithEnderecoAsync(clienteId);
-                if (cliente == null)
-                {
-                    return ApiResponse<ClienteResponse?>.ErrorResult("Cliente não encontrado");
-                }
+                throw new NotFoundException("Cliente", clienteId);
+            }
 
-                var response = MapToResponseWithEndereco(cliente);
-                return ApiResponse<ClienteResponse?>.SuccessResult(
-                    response, "Cliente com endereço encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClienteResponse?>.ErrorResult(
-                    "Erro ao buscar cliente", new List<string> { ex.Message });
-            }
+            var response = MapToResponseWithEndereco(cliente);
+            return ApiResponse<ClienteResponse?>.SuccessResult(
+                response, "Cliente com endereço encontrado com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<ClienteResponse>>> GetClientesByIdadeAsync(int idadeMinima, int idadeMaxima)
         {
-            try
-            {
-                var clientes = await _clienteRepository.GetClientesByIdadeAsync(idadeMinima, idadeMaxima);
-                var response = clientes.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
-                    response, $"Clientes entre {idadeMinima} e {idadeMaxima} anos encontrados");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ClienteResponse>>.ErrorResult(
-                    "Erro ao buscar clientes por idade", new List<string> { ex.Message });
-            }
+            var clientes = await _clienteRepository.GetClientesByIdadeAsync(idadeMinima, idadeMaxima);
+            var response = clientes.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
+                response, $"Clientes entre {idadeMinima} e {idadeMaxima} anos encontrados");
         }
 
         public async Task<ApiResponse<ClienteResponse>> CreateAsync(CreateClienteRequest request)
         {
-            try
+            // Validações usando UserManager
+            var cpfValueObject = new Cpf(request.Cpf);
+            
+            var emailExists = await _userManager.FindByEmailAsync(request.Email);
+            if (emailExists != null)
             {
-                // Validações usando UserManager
-                var cpfValueObject = new Cpf(request.Cpf);
-                
-                var emailExists = await _userManager.FindByEmailAsync(request.Email);
-                if (emailExists != null)
-                {
-                    return ApiResponse<ClienteResponse>.ErrorResult("Já existe um cliente com este email");
-                }
-
-                var cpfExists = await _clienteRepository.CpfExistsAsync(cpfValueObject);
-                if (cpfExists)
-                {
-                    return ApiResponse<ClienteResponse>.ErrorResult("Já existe um cliente com este CPF");
-                }
-
-                // Criar endereço
-                var endereco = new Endereco
-                {
-                    Rua = request.Rua,
-                    Numero = request.Numero,
-                    Bairro = request.Bairro,
-                    Complemento = request.Complemento,
-                    Cidade = request.Cidade,
-                    Estado = request.Estado,
-                    Cep = new Cep(request.Cep),
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude
-                };
-
-                var enderecoResult = await _enderecoRepository.AddAsync(endereco);
-                await _enderecoRepository.SaveChangesAsync();
-
-                // Criar cliente usando UserManager
-                var cliente = new Cliente
-                {
-                    UserName = request.Email, // Identity requer UserName
-                    Email = request.Email,
-                    PhoneNumber = request.Telefone, // Identity usa PhoneNumber
-                    Nome = request.Nome,
-                    Cpf = cpfValueObject,
-                    ImagemPerfilUrl = request.ImagemPerfilUrl,
-                    DataNascimento = request.DataNascimento,
-                    DataCriacao = DateTime.UtcNow,
-                    EnderecoId = enderecoResult.EnderecoId
-                };
-
-                var result = await _userManager.CreateAsync(cliente, request.Senha);
-                if (!result.Succeeded)
-                {
-                    var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ApiResponse<ClienteResponse>.ErrorResult(
-                        "Erro ao criar cliente", errors);
-                }
-
-                var response = MapToResponse(cliente);
-                return ApiResponse<ClienteResponse>.SuccessResult(
-                    response, "Cliente criado com sucesso");
+                throw new BusinessException("Já existe um cliente com este email");
             }
-            catch (Exception ex)
+
+            var cpfExists = await _clienteRepository.CpfExistsAsync(cpfValueObject);
+            if (cpfExists)
             {
-                return ApiResponse<ClienteResponse>.ErrorResult(
-                    "Erro ao criar cliente", new List<string> { ex.Message });
+                throw new BusinessException("Já existe um cliente com este CPF");
             }
+
+            // Criar endereço
+            var endereco = new Endereco
+            {
+                Rua = request.Rua,
+                Numero = request.Numero,
+                Bairro = request.Bairro,
+                Complemento = request.Complemento,
+                Cidade = request.Cidade,
+                Estado = request.Estado,
+                Cep = new Cep(request.Cep),
+                Latitude = request.Latitude,
+                Longitude = request.Longitude
+            };
+
+            var enderecoResult = await _enderecoRepository.AddAsync(endereco);
+            await _enderecoRepository.SaveChangesAsync();
+
+            // Criar cliente usando UserManager
+            var cliente = new Cliente
+            {
+                UserName = request.Email, // Identity requer UserName
+                Email = request.Email,
+                PhoneNumber = request.Telefone, // Identity usa PhoneNumber
+                Nome = request.Nome,
+                Cpf = cpfValueObject,
+                ImagemPerfilUrl = request.ImagemPerfilUrl,
+                DataNascimento = request.DataNascimento,
+                DataCriacao = DateTime.UtcNow,
+                EnderecoId = enderecoResult.EnderecoId
+            };
+
+            var result = await _userManager.CreateAsync(cliente, request.Senha);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BusinessException($"Erro ao criar cliente: {errors}");
+            }
+
+            var response = MapToResponse(cliente);
+            return ApiResponse<ClienteResponse>.SuccessResult(
+                response, "Cliente criado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse>> UpdateAsync(int id, UpdateClienteRequest request)
         {
-            try
+            var cliente = await _userManager.FindByIdAsync(id.ToString());
+            if (cliente == null)
             {
-                var cliente = await _userManager.FindByIdAsync(id.ToString());
-                if (cliente == null)
-                {
-                    return ApiResponse<ClienteResponse>.ErrorResult("Cliente não encontrado");
-                }
+                throw new NotFoundException("Cliente", id);
+            }
 
-                // Verificar se novo email já existe (exceto no próprio cliente)
-                var clienteExistente = await _userManager.FindByEmailAsync(request.Email);
-                if (clienteExistente != null && clienteExistente.Id != id)
-                {
-                    return ApiResponse<ClienteResponse>.ErrorResult("Já existe um cliente com este email");
-                }
+            // Verificar se novo email já existe (exceto no próprio cliente)
+            var clienteExistente = await _userManager.FindByEmailAsync(request.Email);
+            if (clienteExistente != null && clienteExistente.Id != id)
+            {
+                throw new BusinessException("Já existe um cliente com este email");
+            }
 
                 // Atualizar propriedades do Identity
                 cliente.Email = request.Email;
@@ -264,83 +206,53 @@ namespace Gemona.Application.Services
                     }
                 }
 
-                var result = await _userManager.UpdateAsync(cliente);
-                if (!result.Succeeded)
-                {
-                    var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ApiResponse<ClienteResponse>.ErrorResult(
-                        "Erro ao atualizar cliente", errors);
-                }
-
-                var response = MapToResponse(cliente);
-                return ApiResponse<ClienteResponse>.SuccessResult(
-                    response, "Cliente atualizado com sucesso");
-            }
-            catch (Exception ex)
+            var result = await _userManager.UpdateAsync(cliente);
+            if (!result.Succeeded)
             {
+                var errors = result.Errors.Select(e => e.Description).ToList();
                 return ApiResponse<ClienteResponse>.ErrorResult(
-                    "Erro ao atualizar cliente", new List<string> { ex.Message });
+                    "Erro ao atualizar cliente", errors);
             }
+
+            var response = MapToResponse(cliente);
+            return ApiResponse<ClienteResponse>.SuccessResult(
+                response, "Cliente atualizado com sucesso");
         }
 
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
         {
-            try
+            var cliente = await _userManager.FindByIdAsync(id.ToString());
+            if (cliente == null)
             {
-                var cliente = await _userManager.FindByIdAsync(id.ToString());
-                if (cliente == null)
-                {
-                    return ApiResponse<bool>.ErrorResult("Cliente não encontrado");
-                }
-
-                // Soft delete
-                cliente.Ativo = false;
-                cliente.DataAtualizacao = DateTime.UtcNow;
-
-                var result = await _userManager.UpdateAsync(cliente);
-                if (!result.Succeeded)
-                {
-                    var errors = result.Errors.Select(e => e.Description).ToList();
-                    return ApiResponse<bool>.ErrorResult("Erro ao excluir cliente", errors);
-                }
-
-                return ApiResponse<bool>.SuccessResult(true, "Cliente excluído com sucesso");
+                throw new NotFoundException("Cliente", id);
             }
-            catch (Exception ex)
+
+            // Soft delete
+            cliente.Ativo = false;
+            cliente.DataAtualizacao = DateTime.UtcNow;
+
+            var result = await _userManager.UpdateAsync(cliente);
+            if (!result.Succeeded)
             {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao excluir cliente", new List<string> { ex.Message });
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return ApiResponse<bool>.ErrorResult("Erro ao excluir cliente", errors);
             }
+
+            return ApiResponse<bool>.SuccessResult(true, "Cliente excluído com sucesso");
         }
 
         public async Task<ApiResponse<bool>> EmailExistsAsync(string email)
         {
-            try
-            {
-                var cliente = await _userManager.FindByEmailAsync(email);
-                return ApiResponse<bool>.SuccessResult(
-                    cliente != null, "Verificação realizada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao verificar email", new List<string> { ex.Message });
-            }
+            var cliente = await _userManager.FindByEmailAsync(email);
+            return ApiResponse<bool>.SuccessResult(
+                cliente != null, "Verificação realizada com sucesso");
         }
 
         public async Task<ApiResponse<bool>> CpfExistsAsync(string cpf)
         {
-            try
-            {
-                var cpfValueObject = new Cpf(cpf);
-                var exists = await _clienteRepository.CpfExistsAsync(cpfValueObject);
-                return ApiResponse<bool>.SuccessResult(exists, "Verificação realizada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao verificar CPF", new List<string> { ex.Message });
-            }
+            var cpfValueObject = new Cpf(cpf);
+            var exists = await _clienteRepository.CpfExistsAsync(cpfValueObject);
+            return ApiResponse<bool>.SuccessResult(exists, "Verificação realizada com sucesso");
         }
 
         private static ClienteResponse MapToResponse(Cliente cliente)

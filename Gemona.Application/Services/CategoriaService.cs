@@ -2,6 +2,7 @@ using Gemona.Application.DTOs.Request.Categoria;
 using Gemona.Application.DTOs.Response.Categoria;
 using Gemona.Application.DTOs.Response.SubCategoria;
 using Gemona.Application.DTOs.Shared;
+using Gemona.Application.Exceptions;
 using Gemona.Application.Interfaces.Repositories;
 using Gemona.Application.Interfaces.Services;
 using Gemona.Domain.Entities;
@@ -19,148 +20,100 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<CategoriaResponse>>> GetAllAsync()
         {
-            try
-            {
-                var categorias = await _categoriaRepository.GetAllActiveAsync();
-                var response = categorias.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<CategoriaResponse>>.SuccessResult(
-                    response, "Categorias recuperadas com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<CategoriaResponse>>.ErrorResult(
-                    "Erro ao buscar categorias", new List<string> { ex.Message });
-            }
+            var categorias = await _categoriaRepository.GetAllActiveAsync();
+            var response = categorias.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<CategoriaResponse>>.SuccessResult(
+                response, "Categorias recuperadas com sucesso");
         }
 
         public async Task<ApiResponse<CategoriaResponse?>> GetByIdAsync(int id)
         {
-            try
+            var categoria = await _categoriaRepository.GetByIdAsync(id);
+            if (categoria == null)
             {
-                var categoria = await _categoriaRepository.GetByIdAsync(id);
-                if (categoria == null)
-                {
-                    return ApiResponse<CategoriaResponse?>.ErrorResult("Categoria não encontrada");
-                }
+                throw new NotFoundException("Categoria", id);
+            }
 
-                var response = MapToResponse(categoria);
-                return ApiResponse<CategoriaResponse?>.SuccessResult(
-                    response, "Categoria encontrada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CategoriaResponse?>.ErrorResult(
-                    "Erro ao buscar categoria", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(categoria);
+            return ApiResponse<CategoriaResponse?>.SuccessResult(
+                response, "Categoria encontrada com sucesso");
         }
 
         public async Task<ApiResponse<CategoriaWithSubCategoriasResponse?>> GetWithSubCategoriasAsync(int id)
         {
-            try
+            var categoria = await _categoriaRepository.GetCategoriaWithSubCategoriasAsync(id);
+            if (categoria == null)
             {
-                var categoria = await _categoriaRepository.GetCategoriaWithSubCategoriasAsync(id);
-                if (categoria == null)
-                {
-                    return ApiResponse<CategoriaWithSubCategoriasResponse?>.ErrorResult("Categoria não encontrada");
-                }
+                throw new NotFoundException("Categoria", id);
+            }
 
-                var response = MapToResponseWithSubCategorias(categoria);
-                return ApiResponse<CategoriaWithSubCategoriasResponse?>.SuccessResult(
-                    response, "Categoria com subcategorias encontrada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CategoriaWithSubCategoriasResponse?>.ErrorResult(
-                    "Erro ao buscar categoria", new List<string> { ex.Message });
-            }
+            var response = MapToResponseWithSubCategorias(categoria);
+            return ApiResponse<CategoriaWithSubCategoriasResponse?>.SuccessResult(
+                response, "Categoria com subcategorias encontrada com sucesso");
         }
 
         public async Task<ApiResponse<CategoriaResponse>> CreateAsync(CreateCategoriaRequest request)
         {
-            try
+            // Validar se nome já existe
+            if (await _categoriaRepository.NomeExistsAsync(request.Nome))
             {
-                // Validar se nome já existe
-                if (await _categoriaRepository.NomeExistsAsync(request.Nome))
-                {
-                    return ApiResponse<CategoriaResponse>.ErrorResult("Já existe uma categoria com este nome");
-                }
-
-                var categoria = new Categoria
-                {
-                    Nome = request.Nome,
-                    ImagemCategoriaUrl = request.ImagemCategoriaUrl
-                };
-
-                var result = await _categoriaRepository.AddAsync(categoria);
-                await _categoriaRepository.SaveChangesAsync();
-
-                var response = MapToResponse(result);
-                return ApiResponse<CategoriaResponse>.SuccessResult(
-                    response, "Categoria criada com sucesso");
+                throw new BusinessException("Já existe uma categoria com este nome");
             }
-            catch (Exception ex)
+
+            var categoria = new Categoria
             {
-                return ApiResponse<CategoriaResponse>.ErrorResult(
-                    "Erro ao criar categoria", new List<string> { ex.Message });
-            }
+                Nome = request.Nome,
+                ImagemCategoriaUrl = request.ImagemCategoriaUrl
+            };
+
+            var result = await _categoriaRepository.AddAsync(categoria);
+            await _categoriaRepository.SaveChangesAsync();
+
+            var response = MapToResponse(result);
+            return ApiResponse<CategoriaResponse>.SuccessResult(
+                response, "Categoria criada com sucesso");
         }
 
         public async Task<ApiResponse<CategoriaResponse>> UpdateAsync(int id, UpdateCategoriaRequest request)
         {
-            try
+            var categoria = await _categoriaRepository.GetByIdAsync(id);
+            if (categoria == null)
             {
-                var categoria = await _categoriaRepository.GetByIdAsync(id);
-                if (categoria == null)
-                {
-                    return ApiResponse<CategoriaResponse>.ErrorResult("Categoria não encontrada");
-                }
-
-                // Verificar se novo nome já existe (exceto na própria categoria)
-                var categoriaExistente = await _categoriaRepository.GetByNomeAsync(request.Nome);
-                if (categoriaExistente != null && categoriaExistente.CategoriaId != id)
-                {
-                    return ApiResponse<CategoriaResponse>.ErrorResult("Já existe uma categoria com este nome");
-                }
-
-                categoria.Nome = request.Nome;
-                categoria.ImagemCategoriaUrl = request.ImagemCategoriaUrl;
-                categoria.DataAtualizacao = DateTime.UtcNow;
-
-                await _categoriaRepository.UpdateAsync(categoria);
-                await _categoriaRepository.SaveChangesAsync();
-
-                var response = MapToResponse(categoria);
-                return ApiResponse<CategoriaResponse>.SuccessResult(
-                    response, "Categoria atualizada com sucesso");
+                throw new NotFoundException("Categoria", id);
             }
-            catch (Exception ex)
+
+            // Verificar se novo nome já existe (exceto na própria categoria)
+            var categoriaExistente = await _categoriaRepository.GetByNomeAsync(request.Nome);
+            if (categoriaExistente != null && categoriaExistente.CategoriaId != id)
             {
-                return ApiResponse<CategoriaResponse>.ErrorResult(
-                    "Erro ao atualizar categoria", new List<string> { ex.Message });
+                throw new BusinessException("Já existe uma categoria com este nome");
             }
+
+            categoria.Nome = request.Nome;
+            categoria.ImagemCategoriaUrl = request.ImagemCategoriaUrl;
+            categoria.DataAtualizacao = DateTime.UtcNow;
+
+            await _categoriaRepository.UpdateAsync(categoria);
+            await _categoriaRepository.SaveChangesAsync();
+
+            var response = MapToResponse(categoria);
+            return ApiResponse<CategoriaResponse>.SuccessResult(
+                response, "Categoria atualizada com sucesso");
         }
 
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
         {
-            try
+            var categoria = await _categoriaRepository.GetByIdAsync(id);
+            if (categoria == null)
             {
-                var categoria = await _categoriaRepository.GetByIdAsync(id);
-                if (categoria == null)
-                {
-                    return ApiResponse<bool>.ErrorResult("Categoria não encontrada");
-                }
-
-                await _categoriaRepository.DeleteAsync(id);
-                await _categoriaRepository.SaveChangesAsync();
-
-                return ApiResponse<bool>.SuccessResult(true, "Categoria excluída com sucesso");
+                throw new NotFoundException("Categoria", id);
             }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao excluir categoria", new List<string> { ex.Message });
-            }
+
+            await _categoriaRepository.DeleteAsync(id);
+            await _categoriaRepository.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResult(true, "Categoria excluída com sucesso");
         }
 
         // Métodos de mapeamento

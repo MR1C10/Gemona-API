@@ -7,6 +7,7 @@ using Gemona.Application.Interfaces.Repositories;
 using Gemona.Application.Interfaces.Services;
 using Gemona.Domain.Entities;
 using Gemona.Domain.ValueObjects;
+using Gemona.Application.Exceptions;
 
 namespace Gemona.Application.Services
 {
@@ -28,285 +29,197 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetAllAsync()
         {
-            try
-            {
-                var estabelecimentos = await _estabelecimentoRepository.GetAllActiveAsync();
-                var response = estabelecimentos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
-                    response, "Estabelecimentos recuperados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.ErrorResult(
-                    "Erro ao buscar estabelecimentos", new List<string> { ex.Message });
-            }
+            var estabelecimentos = await _estabelecimentoRepository.GetAllActiveAsync();
+            var response = estabelecimentos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
+                response, "Estabelecimentos recuperados com sucesso");
         }
 
         public async Task<ApiResponse<EstabelecimentoResponse?>> GetByIdAsync(int id)
         {
-            try
+            var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
+            if (estabelecimento == null)
             {
-                var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<EstabelecimentoResponse?>.ErrorResult("Estabelecimento não encontrado");
-                }
+                throw new NotFoundException("Estabelecimento", id);
+            }
 
-                var response = MapToResponse(estabelecimento);
-                return ApiResponse<EstabelecimentoResponse?>.SuccessResult(
-                    response, "Estabelecimento encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EstabelecimentoResponse?>.ErrorResult(
-                    "Erro ao buscar estabelecimento", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(estabelecimento);
+            return ApiResponse<EstabelecimentoResponse?>.SuccessResult(
+                response, "Estabelecimento encontrado com sucesso");
         }
 
         public async Task<ApiResponse<EstabelecimentoResponse?>> GetByCnpjAsync(string cnpj)
         {
-            try
+            var cnpjValueObject = new Cnpj(cnpj);
+            var estabelecimento = await _estabelecimentoRepository.GetByCnpjAsync(cnpjValueObject);
+            if (estabelecimento == null)
             {
-                var cnpjValueObject = new Cnpj(cnpj);
-                var estabelecimento = await _estabelecimentoRepository.GetByCnpjAsync(cnpjValueObject);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<EstabelecimentoResponse?>.ErrorResult("Estabelecimento não encontrado");
-                }
+                throw new NotFoundException($"Estabelecimento com CNPJ '{cnpj}' não foi encontrado");
+            }
 
-                var response = MapToResponse(estabelecimento);
-                return ApiResponse<EstabelecimentoResponse?>.SuccessResult(
-                    response, "Estabelecimento encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EstabelecimentoResponse?>.ErrorResult(
-                    "Erro ao buscar estabelecimento", new List<string> { ex.Message });
-            }
+            var response = MapToResponse(estabelecimento);
+            return ApiResponse<EstabelecimentoResponse?>.SuccessResult(
+                response, "Estabelecimento encontrado com sucesso");
         }
 
         public async Task<ApiResponse<EstabelecimentoCompletoResponse?>> GetEstabelecimentoCompletoAsync(int id)
         {
-            try
+            var estabelecimento = await _estabelecimentoRepository.GetEstabelecimentoCompletoAsync(id);
+            if (estabelecimento == null)
             {
-                var estabelecimento = await _estabelecimentoRepository.GetEstabelecimentoCompletoAsync(id);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<EstabelecimentoCompletoResponse?>.ErrorResult("Estabelecimento não encontrado");
-                }
+                throw new NotFoundException("Estabelecimento", id);
+            }
 
-                var response = MapToResponseCompleto(estabelecimento);
-                return ApiResponse<EstabelecimentoCompletoResponse?>.SuccessResult(
-                    response, "Estabelecimento completo encontrado com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EstabelecimentoCompletoResponse?>.ErrorResult(
-                    "Erro ao buscar estabelecimento", new List<string> { ex.Message });
-            }
+            var response = MapToResponseCompleto(estabelecimento);
+            return ApiResponse<EstabelecimentoCompletoResponse?>.SuccessResult(
+                response, "Estabelecimento completo encontrado com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosByProfissionalAsync(int profissionalId)
         {
-            try
-            {
-                var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosByProfissionalAsync(profissionalId);
-                var response = estabelecimentos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
-                    response, "Estabelecimentos do profissional encontrados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.ErrorResult(
-                    "Erro ao buscar estabelecimentos do profissional", new List<string> { ex.Message });
-            }
+            var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosByProfissionalAsync(profissionalId);
+            var response = estabelecimentos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
+                response, "Estabelecimentos do profissional encontrados com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosByCidadeAsync(string cidade)
         {
-            try
-            {
-                var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosByCidadeAsync(cidade);
-                var response = estabelecimentos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
-                    response, $"Estabelecimentos da cidade {cidade} encontrados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.ErrorResult(
-                    "Erro ao buscar estabelecimentos por cidade", new List<string> { ex.Message });
-            }
+            var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosByCidadeAsync(cidade);
+            var response = estabelecimentos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
+                response, $"Estabelecimentos da cidade {cidade} encontrados com sucesso");
         }
 
         public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosProximosAsync(decimal latitude, decimal longitude, double raioKm)
         {
-            try
-            {
-                var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosProximosAsync(latitude, longitude, raioKm);
-                var response = estabelecimentos.Select(MapToResponse);
-                
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
-                    response, $"Estabelecimentos próximos encontrados com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<EstabelecimentoResponse>>.ErrorResult(
-                    "Erro ao buscar estabelecimentos próximos", new List<string> { ex.Message });
-            }
+            var estabelecimentos = await _estabelecimentoRepository.GetEstabelecimentosProximosAsync(latitude, longitude, raioKm);
+            var response = estabelecimentos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
+                response, $"Estabelecimentos próximos encontrados com sucesso");
         }
 
         public async Task<ApiResponse<EstabelecimentoResponse>> CreateAsync(CreateEstabelecimentoRequest request)
         {
-            try
+            // Validações
+            var cnpjValueObject = new Cnpj(request.Cnpj);
+            
+            var cnpjExists = await _estabelecimentoRepository.CnpjExistsAsync(cnpjValueObject);
+            if (cnpjExists)
             {
-                // Validações
-                var cnpjValueObject = new Cnpj(request.Cnpj);
-                
-                var cnpjExists = await _estabelecimentoRepository.CnpjExistsAsync(cnpjValueObject);
-                if (cnpjExists)
-                {
-                    return ApiResponse<EstabelecimentoResponse>.ErrorResult("Já existe um estabelecimento com este CNPJ");
-                }
-
-                // Verificar se profissional existe
-                var profissional = await _profissionalRepository.GetByIdAsync(request.ProfissionalId);
-                if (profissional == null)
-                {
-                    return ApiResponse<EstabelecimentoResponse>.ErrorResult("Profissional não encontrado");
-                }
-
-                // Criar endereço
-                var endereco = new Endereco
-                {
-                    Rua = request.Rua,
-                    Numero = request.Numero,
-                    Bairro = request.Bairro,
-                    Complemento = request.Complemento,
-                    Cidade = request.Cidade,
-                    Estado = request.Estado,
-                    Cep = new Cep(request.Cep),
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude
-                };
-
-                var enderecoResult = await _enderecoRepository.AddAsync(endereco);
-                await _enderecoRepository.SaveChangesAsync();
-
-                // Criar estabelecimento
-                var estabelecimento = new Estabelecimento
-                {
-                    Nome = request.Nome,
-                    Cnpj = cnpjValueObject,
-                    Telefone = request.Telefone,
-                    Email = request.Email,
-                    ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl,
-                    ProfissionalId = request.ProfissionalId,
-                    EnderecoId = enderecoResult.EnderecoId
-                };
-
-                var result = await _estabelecimentoRepository.AddAsync(estabelecimento);
-                await _estabelecimentoRepository.SaveChangesAsync();
-
-                var response = MapToResponse(result);
-                return ApiResponse<EstabelecimentoResponse>.SuccessResult(
-                    response, "Estabelecimento criado com sucesso");
+                throw new BusinessException("Já existe um estabelecimento com este CNPJ");
             }
-            catch (Exception ex)
+
+            // Verificar se profissional existe
+            var profissional = await _profissionalRepository.GetByIdAsync(request.ProfissionalId);
+            if (profissional == null)
             {
-                return ApiResponse<EstabelecimentoResponse>.ErrorResult(
-                    "Erro ao criar estabelecimento", new List<string> { ex.Message });
+                throw new NotFoundException("Profissional", request.ProfissionalId);
             }
+
+            // Criar endereço
+            var endereco = new Endereco
+            {
+                Rua = request.Rua,
+                Numero = request.Numero,
+                Bairro = request.Bairro,
+                Complemento = request.Complemento,
+                Cidade = request.Cidade,
+                Estado = request.Estado,
+                Cep = new Cep(request.Cep),
+                Latitude = request.Latitude,
+                Longitude = request.Longitude
+            };
+
+            var enderecoResult = await _enderecoRepository.AddAsync(endereco);
+            await _enderecoRepository.SaveChangesAsync();
+
+            // Criar estabelecimento
+            var estabelecimento = new Estabelecimento
+            {
+                Nome = request.Nome,
+                Cnpj = cnpjValueObject,
+                Telefone = request.Telefone,
+                Email = request.Email,
+                ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl,
+                ProfissionalId = request.ProfissionalId,
+                EnderecoId = enderecoResult.EnderecoId
+            };
+
+            var result = await _estabelecimentoRepository.AddAsync(estabelecimento);
+            await _estabelecimentoRepository.SaveChangesAsync();
+
+            var response = MapToResponse(result);
+            return ApiResponse<EstabelecimentoResponse>.SuccessResult(
+                response, "Estabelecimento criado com sucesso");
         }
 
         public async Task<ApiResponse<EstabelecimentoResponse>> UpdateAsync(int id, UpdateEstabelecimentoRequest request)
         {
-            try
+            var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
+            if (estabelecimento == null)
             {
-                var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<EstabelecimentoResponse>.ErrorResult("Estabelecimento não encontrado");
-                }
-
-                // Atualizar estabelecimento
-                estabelecimento.Nome = request.Nome;
-                estabelecimento.Telefone = request.Telefone;
-                estabelecimento.Email = request.Email;
-                estabelecimento.Descricao = request.Descricao;
-                estabelecimento.ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl;
-                estabelecimento.DataAtualizacao = DateTime.UtcNow;
-
-                // Atualizar endereço
-                var endereco = await _enderecoRepository.GetByIdAsync(estabelecimento.EnderecoId);
-                if (endereco != null)
-                {
-                    endereco.Rua = request.Rua;
-                    endereco.Numero = request.Numero;
-                    endereco.Bairro = request.Bairro;
-                    endereco.Complemento = request.Complemento;
-                    endereco.Cidade = request.Cidade;
-                    endereco.Estado = request.Estado;
-                    endereco.Cep = new Cep(request.Cep);
-                    endereco.Latitude = request.Latitude;
-                    endereco.Longitude = request.Longitude;
-                    endereco.DataAtualizacao = DateTime.UtcNow;
-
-                    await _enderecoRepository.UpdateAsync(endereco);
-                    await _enderecoRepository.SaveChangesAsync();
-                }
-
-                await _estabelecimentoRepository.UpdateAsync(estabelecimento);
-                await _estabelecimentoRepository.SaveChangesAsync();
-
-                var response = MapToResponse(estabelecimento);
-                return ApiResponse<EstabelecimentoResponse>.SuccessResult(
-                    response, "Estabelecimento atualizado com sucesso");
+                throw new NotFoundException("Estabelecimento", id);
             }
-            catch (Exception ex)
+
+            // Atualizar estabelecimento
+            estabelecimento.Nome = request.Nome;
+            estabelecimento.Telefone = request.Telefone;
+            estabelecimento.Email = request.Email;
+            estabelecimento.Descricao = request.Descricao;
+            estabelecimento.ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl;
+            estabelecimento.DataAtualizacao = DateTime.UtcNow;
+
+            // Atualizar endereço
+            var endereco = await _enderecoRepository.GetByIdAsync(estabelecimento.EnderecoId);
+            if (endereco != null)
             {
-                return ApiResponse<EstabelecimentoResponse>.ErrorResult(
-                    "Erro ao atualizar estabelecimento", new List<string> { ex.Message });
+                endereco.Rua = request.Rua;
+                endereco.Numero = request.Numero;
+                endereco.Bairro = request.Bairro;
+                endereco.Complemento = request.Complemento;
+                endereco.Cidade = request.Cidade;
+                endereco.Estado = request.Estado;
+                endereco.Cep = new Cep(request.Cep);
+                endereco.Latitude = request.Latitude;
+                endereco.Longitude = request.Longitude;
+                endereco.DataAtualizacao = DateTime.UtcNow;
+
+                await _enderecoRepository.UpdateAsync(endereco);
+                await _enderecoRepository.SaveChangesAsync();
             }
+
+            await _estabelecimentoRepository.UpdateAsync(estabelecimento);
+            await _estabelecimentoRepository.SaveChangesAsync();
+
+            var response = MapToResponse(estabelecimento);
+            return ApiResponse<EstabelecimentoResponse>.SuccessResult(
+                response, "Estabelecimento atualizado com sucesso");
         }
 
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
         {
-            try
+            var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
+            if (estabelecimento == null)
             {
-                var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
-                if (estabelecimento == null)
-                {
-                    return ApiResponse<bool>.ErrorResult("Estabelecimento não encontrado");
-                }
-
-                await _estabelecimentoRepository.DeleteAsync(id);
-                await _estabelecimentoRepository.SaveChangesAsync();
-
-                return ApiResponse<bool>.SuccessResult(true, "Estabelecimento excluído com sucesso");
+                throw new NotFoundException("Estabelecimento", id);
             }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao excluir estabelecimento", new List<string> { ex.Message });
-            }
+
+            await _estabelecimentoRepository.DeleteAsync(id);
+            await _estabelecimentoRepository.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResult(true, "Estabelecimento excluído com sucesso");
         }
 
         public async Task<ApiResponse<bool>> CnpjExistsAsync(string cnpj)
         {
-            try
-            {
-                var cnpjValueObject = new Cnpj(cnpj);
-                var exists = await _estabelecimentoRepository.CnpjExistsAsync(cnpjValueObject);
-                return ApiResponse<bool>.SuccessResult(exists, "Verificação realizada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResult(
-                    "Erro ao verificar CNPJ", new List<string> { ex.Message });
-            }
+            var cnpjValueObject = new Cnpj(cnpj);
+            var exists = await _estabelecimentoRepository.CnpjExistsAsync(cnpjValueObject);
+            return ApiResponse<bool>.SuccessResult(exists, "Verificação realizada com sucesso");
         }
 
         // Métodos de mapeamento
