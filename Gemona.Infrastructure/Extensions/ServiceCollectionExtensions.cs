@@ -77,6 +77,7 @@ namespace Gemona.Infrastructure.Extensions
 
             // Services de Infraestrutura
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IBlobStorageService, BlobStorageService>();
 
             // Services de Aplicação
             services.AddScoped<ICategoriaService, CategoriaService>();
