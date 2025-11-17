@@ -16,15 +16,18 @@ namespace Gemona.Application.Services
         private readonly UserManager<Profissional> _userManager;
         private readonly IProfissionalRepository _profissionalRepository;
         private readonly IEstabelecimentoRepository _estabelecimentoRepository;
+        private readonly IBlobStorageService _blobStorageService;
 
         public ProfissionalService(
             UserManager<Profissional> userManager,
             IProfissionalRepository profissionalRepository,
-            IEstabelecimentoRepository estabelecimentoRepository)
+            IEstabelecimentoRepository estabelecimentoRepository,
+            IBlobStorageService blobStorageService)
         {
             _userManager = userManager;
             _profissionalRepository = profissionalRepository;
             _estabelecimentoRepository = estabelecimentoRepository;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ApiResponse<IEnumerable<ProfissionalResponse>>> GetAllAsync()
@@ -106,6 +109,19 @@ namespace Gemona.Application.Services
                 throw new BusinessException("Já existe um profissional com este CPF");
             }
 
+            // Upload da imagem se fornecida
+            string? imagemUrl = null;
+            if (request.ImagemPerfil != null)
+            {
+                var imageBytes = Convert.FromBase64String(request.ImagemPerfil.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                imagemUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemPerfil.FileName,
+                    request.ImagemPerfil.ContentType
+                );
+            }
+
             // Criar profissional usando UserManager
             var profissional = new Profissional
             {
@@ -114,7 +130,7 @@ namespace Gemona.Application.Services
                 PhoneNumber = request.Telefone, // Identity usa PhoneNumber
                 Nome = request.Nome,
                 Cpf = cpfValueObject,
-                ImagemPerfilUrl = request.ImagemPerfilUrl,
+                ImagemPerfilUrl = imagemUrl,
                 DataNascimento = request.DataNascimento,
                 DataCriacao = DateTime.UtcNow
             };
@@ -151,9 +167,27 @@ namespace Gemona.Application.Services
             profissional.UserName = request.Email;
             profissional.PhoneNumber = request.Telefone;
 
+            // Upload da nova imagem se fornecida
+            if (request.ImagemPerfil != null)
+            {
+                // Deletar imagem antiga se existir
+                if (!string.IsNullOrEmpty(profissional.ImagemPerfilUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(profissional.ImagemPerfilUrl);
+                }
+
+                // Upload da nova imagem
+                var imageBytes = Convert.FromBase64String(request.ImagemPerfil.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                profissional.ImagemPerfilUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemPerfil.FileName,
+                    request.ImagemPerfil.ContentType
+                );
+            }
+
             // Atualizar propriedades customizadas
             profissional.Nome = request.Nome;
-            profissional.ImagemPerfilUrl = request.ImagemPerfilUrl;
             profissional.DataNascimento = request.DataNascimento;
             profissional.DataAtualizacao = DateTime.UtcNow;
 

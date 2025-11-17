@@ -14,15 +14,18 @@ namespace Gemona.Application.Services
         private readonly IAvaliacaoRepository _avaliacaoRepository;
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IClienteRepository _clienteRepository;
+        private readonly IBlobStorageService _blobStorageService;
 
         public AvaliacaoService(
             IAvaliacaoRepository avaliacaoRepository,
             IPedidoRepository pedidoRepository,
-            IClienteRepository clienteRepository)
+            IClienteRepository clienteRepository,
+            IBlobStorageService blobStorageService)
         {
             _avaliacaoRepository = avaliacaoRepository;
             _pedidoRepository = pedidoRepository;
             _clienteRepository = clienteRepository;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ApiResponse<IEnumerable<AvaliacaoResponse>>> GetAllAsync()
@@ -231,13 +234,26 @@ namespace Gemona.Application.Services
                 throw new BusinessException("Nota inválida");
             }
 
+            // Upload da imagem se fornecida
+            string? imagemUrl = null;
+            if (request.ImagemComentario != null)
+            {
+                var imageBytes = Convert.FromBase64String(request.ImagemComentario.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                imagemUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemComentario.FileName,
+                    request.ImagemComentario.ContentType
+                );
+            }
+
             var avaliacao = new Avaliacao
             {
                 PedidoId = request.PedidoId,
                 ClienteId = request.ClienteId,
                 Nota = request.Nota,
                 Comentario = request.Comentario,
-                ImagemComentarioUrl = request.ImagemComentarioUrl,
+                ImagemComentarioUrl = imagemUrl,
                 Data = DateTime.UtcNow
             };
 
@@ -263,9 +279,27 @@ namespace Gemona.Application.Services
                 throw new BusinessException("Nota inválida");
             }
 
+            // Upload da nova imagem se fornecida
+            if (request.ImagemComentario != null)
+            {
+                // Deletar imagem antiga se existir
+                if (!string.IsNullOrEmpty(avaliacao.ImagemComentarioUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(avaliacao.ImagemComentarioUrl);
+                }
+
+                // Upload da nova imagem
+                var imageBytes = Convert.FromBase64String(request.ImagemComentario.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                avaliacao.ImagemComentarioUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemComentario.FileName,
+                    request.ImagemComentario.ContentType
+                );
+            }
+
             avaliacao.Nota = request.Nota;
             avaliacao.Comentario = request.Comentario;
-            avaliacao.ImagemComentarioUrl = request.ImagemComentarioUrl;
             avaliacao.DataAtualizacao = DateTime.UtcNow;
 
             await _avaliacaoRepository.UpdateAsync(avaliacao);

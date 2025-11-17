@@ -15,15 +15,18 @@ namespace Gemona.Application.Services
         private readonly IServicoRepository _servicoRepository;
         private readonly IEstabelecimentoRepository _estabelecimentoRepository;
         private readonly ISubCategoriaRepository _subCategoriaRepository;
+        private readonly IBlobStorageService _blobStorageService;
 
         public ServicoService(
             IServicoRepository servicoRepository,
             IEstabelecimentoRepository estabelecimentoRepository,
-            ISubCategoriaRepository subCategoriaRepository)
+            ISubCategoriaRepository subCategoriaRepository,
+            IBlobStorageService blobStorageService)
         {
             _servicoRepository = servicoRepository;
             _estabelecimentoRepository = estabelecimentoRepository;
             _subCategoriaRepository = subCategoriaRepository;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ApiResponse<IEnumerable<ServicoResponse>>> GetAllAsync()
@@ -226,13 +229,26 @@ namespace Gemona.Application.Services
                 throw new NotFoundException("Subcategoria", request.SubCategoriaId);
             }
 
+            // Upload da imagem se fornecida
+            string? imagemUrl = null;
+            if (request.ImagemServico != null)
+            {
+                var imageBytes = Convert.FromBase64String(request.ImagemServico.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                imagemUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemServico.FileName,
+                    request.ImagemServico.ContentType
+                );
+            }
+
             var servico = new Servico
             {
                 Nome = request.Nome,
                 Descricao = request.Descricao,
                 SubCategoriaId = request.SubCategoriaId,
                 Preco = request.Preco,
-                ImagemServicoUrl = request.ImagemServicoUrl,
+                ImagemServicoUrl = imagemUrl,
                 EstabelecimentoId = request.EstabelecimentoId
             };
 
@@ -265,11 +281,29 @@ namespace Gemona.Application.Services
                 throw new NotFoundException("Subcategoria", request.SubCategoriaId);
             }
 
+            // Upload da nova imagem se fornecida
+            if (request.ImagemServico != null)
+            {
+                // Deletar imagem antiga se existir
+                if (!string.IsNullOrEmpty(servico.ImagemServicoUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(servico.ImagemServicoUrl);
+                }
+
+                // Upload da nova imagem
+                var imageBytes = Convert.FromBase64String(request.ImagemServico.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                servico.ImagemServicoUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemServico.FileName,
+                    request.ImagemServico.ContentType
+                );
+            }
+
             servico.Nome = request.Nome;
             servico.Descricao = request.Descricao;
             servico.SubCategoriaId = request.SubCategoriaId;
             servico.Preco = request.Preco;
-            servico.ImagemServicoUrl = request.ImagemServicoUrl;
             servico.DataAtualizacao = DateTime.UtcNow;
 
             await _servicoRepository.UpdateAsync(servico);

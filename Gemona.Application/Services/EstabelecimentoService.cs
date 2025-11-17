@@ -16,15 +16,21 @@ namespace Gemona.Application.Services
         private readonly IEstabelecimentoRepository _estabelecimentoRepository;
         private readonly IProfissionalRepository _profissionalRepository;
         private readonly IEnderecoRepository _enderecoRepository;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly IGeocodingService _geocodingService;
 
         public EstabelecimentoService(
             IEstabelecimentoRepository estabelecimentoRepository,
             IProfissionalRepository profissionalRepository,
-            IEnderecoRepository enderecoRepository)
+            IEnderecoRepository enderecoRepository,
+            IBlobStorageService blobStorageService,
+            IGeocodingService geocodingService)
         {
             _estabelecimentoRepository = estabelecimentoRepository;
             _profissionalRepository = profissionalRepository;
             _enderecoRepository = enderecoRepository;
+            _blobStorageService = blobStorageService;
+            _geocodingService = geocodingService;
         }
 
         public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetAllAsync()
@@ -103,6 +109,15 @@ namespace Gemona.Application.Services
                 response, $"Estabelecimentos próximos encontrados com sucesso");
         }
 
+        public async Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> BuscarEstabelecimentosAsync(string termo)
+        {
+            var estabelecimentos = await _estabelecimentoRepository.BuscarEstabelecimentosAsync(termo);
+            var response = estabelecimentos.Select(MapToResponse);
+            
+            return ApiResponse<IEnumerable<EstabelecimentoResponse>>.SuccessResult(
+                response, $"Estabelecimentos encontrados para '{termo}'");
+        }
+
         public async Task<ApiResponse<EstabelecimentoResponse>> CreateAsync(CreateEstabelecimentoRequest request)
         {
             // Validações
@@ -121,6 +136,22 @@ namespace Gemona.Application.Services
                 throw new NotFoundException("Profissional", request.ProfissionalId);
             }
 
+            // Buscar coordenadas automaticamente se não fornecidas
+            decimal latitude = request.Latitude;
+            decimal longitude = request.Longitude;
+
+            if (latitude == 0 && longitude == 0)
+            {
+                var enderecoCompleto = $"{request.Rua}, {request.Numero}, {request.Bairro}, {request.Cidade}, {request.Estado}, {request.Cep}, Brasil";
+                var coordenadas = await _geocodingService.BuscarCoordenadasAsync(enderecoCompleto);
+                
+                if (coordenadas.HasValue)
+                {
+                    latitude = coordenadas.Value.Latitude ?? 0;
+                    longitude = coordenadas.Value.Longitude ?? 0;
+                }
+            }
+
             // Criar endereço
             var endereco = new Endereco
             {
@@ -131,12 +162,25 @@ namespace Gemona.Application.Services
                 Cidade = request.Cidade,
                 Estado = request.Estado,
                 Cep = new Cep(request.Cep),
-                Latitude = request.Latitude,
-                Longitude = request.Longitude
+                Latitude = latitude,
+                Longitude = longitude
             };
 
             var enderecoResult = await _enderecoRepository.AddAsync(endereco);
             await _enderecoRepository.SaveChangesAsync();
+
+            // Upload da imagem se fornecida
+            string? imagemUrl = null;
+            if (request.ImagemEstabelecimento != null)
+            {
+                var imageBytes = Convert.FromBase64String(request.ImagemEstabelecimento.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                imagemUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemEstabelecimento.FileName,
+                    request.ImagemEstabelecimento.ContentType
+                );
+            }
 
             // Criar estabelecimento
             var estabelecimento = new Estabelecimento
@@ -145,7 +189,7 @@ namespace Gemona.Application.Services
                 Cnpj = cnpjValueObject,
                 Telefone = request.Telefone,
                 Email = request.Email,
-                ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl,
+                ImagemEstabelecimentoUrl = imagemUrl,
                 ProfissionalId = request.ProfissionalId,
                 EnderecoId = enderecoResult.EnderecoId
             };
@@ -166,12 +210,30 @@ namespace Gemona.Application.Services
                 throw new NotFoundException("Estabelecimento", id);
             }
 
+            // Upload da nova imagem se fornecida
+            if (request.ImagemEstabelecimento != null)
+            {
+                // Deletar imagem antiga se existir
+                if (!string.IsNullOrEmpty(estabelecimento.ImagemEstabelecimentoUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(estabelecimento.ImagemEstabelecimentoUrl);
+                }
+
+                // Upload da nova imagem
+                var imageBytes = Convert.FromBase64String(request.ImagemEstabelecimento.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                estabelecimento.ImagemEstabelecimentoUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemEstabelecimento.FileName,
+                    request.ImagemEstabelecimento.ContentType
+                );
+            }
+
             // Atualizar estabelecimento
             estabelecimento.Nome = request.Nome;
             estabelecimento.Telefone = request.Telefone;
             estabelecimento.Email = request.Email;
             estabelecimento.Descricao = request.Descricao;
-            estabelecimento.ImagemEstabelecimentoUrl = request.ImagemEstabelecimentoUrl;
             estabelecimento.DataAtualizacao = DateTime.UtcNow;
 
             // Atualizar endereço

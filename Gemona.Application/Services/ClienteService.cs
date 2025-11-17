@@ -16,15 +16,21 @@ namespace Gemona.Application.Services
         private readonly UserManager<Cliente> _userManager;
         private readonly IClienteRepository _clienteRepository;
         private readonly IEnderecoRepository _enderecoRepository;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly IGeocodingService _geocodingService;
 
         public ClienteService(
             UserManager<Cliente> userManager,
             IClienteRepository clienteRepository, 
-            IEnderecoRepository enderecoRepository)
+            IEnderecoRepository enderecoRepository,
+            IBlobStorageService blobStorageService,
+            IGeocodingService geocodingService)
         {
             _userManager = userManager;
             _clienteRepository = clienteRepository;
             _enderecoRepository = enderecoRepository;
+            _blobStorageService = blobStorageService;
+            _geocodingService = geocodingService;
         }
 
         public async Task<ApiResponse<IEnumerable<ClienteResponse>>> GetAllAsync()
@@ -115,6 +121,22 @@ namespace Gemona.Application.Services
                 throw new BusinessException("Já existe um cliente com este CPF");
             }
 
+            // Buscar coordenadas automaticamente se não fornecidas
+            decimal latitude = request.Latitude;
+            decimal longitude = request.Longitude;
+
+            if (latitude == 0 && longitude == 0)
+            {
+                var enderecoCompleto = $"{request.Rua}, {request.Numero}, {request.Bairro}, {request.Cidade}, {request.Estado}, {request.Cep}, Brasil";
+                var coordenadas = await _geocodingService.BuscarCoordenadasAsync(enderecoCompleto);
+                
+                if (coordenadas.HasValue)
+                {
+                    latitude = coordenadas.Value.Latitude ?? 0;
+                    longitude = coordenadas.Value.Longitude ?? 0;
+                }
+            }
+
             // Criar endereço
             var endereco = new Endereco
             {
@@ -125,12 +147,25 @@ namespace Gemona.Application.Services
                 Cidade = request.Cidade,
                 Estado = request.Estado,
                 Cep = new Cep(request.Cep),
-                Latitude = request.Latitude,
-                Longitude = request.Longitude
+                Latitude = latitude,
+                Longitude = longitude
             };
 
             var enderecoResult = await _enderecoRepository.AddAsync(endereco);
             await _enderecoRepository.SaveChangesAsync();
+
+            // Upload da imagem se fornecida
+            string? imagemUrl = null;
+            if (request.ImagemPerfil != null)
+            {
+                var imageBytes = Convert.FromBase64String(request.ImagemPerfil.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                imagemUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemPerfil.FileName,
+                    request.ImagemPerfil.ContentType
+                );
+            }
 
             // Criar cliente usando UserManager
             var cliente = new Cliente
@@ -140,7 +175,7 @@ namespace Gemona.Application.Services
                 PhoneNumber = request.Telefone, // Identity usa PhoneNumber
                 Nome = request.Nome,
                 Cpf = cpfValueObject,
-                ImagemPerfilUrl = request.ImagemPerfilUrl,
+                ImagemPerfilUrl = imagemUrl,
                 DataNascimento = request.DataNascimento,
                 DataCriacao = DateTime.UtcNow,
                 EnderecoId = enderecoResult.EnderecoId
@@ -173,16 +208,34 @@ namespace Gemona.Application.Services
                 throw new BusinessException("Já existe um cliente com este email");
             }
 
-                // Atualizar propriedades do Identity
-                cliente.Email = request.Email;
-                cliente.UserName = request.Email;
-                cliente.PhoneNumber = request.Telefone;
+            // Atualizar propriedades do Identity
+            cliente.Email = request.Email;
+            cliente.UserName = request.Email;
+            cliente.PhoneNumber = request.Telefone;
 
-                // Atualizar propriedades customizadas
-                cliente.Nome = request.Nome;
-                cliente.ImagemPerfilUrl = request.ImagemPerfilUrl;
-                cliente.DataNascimento = request.DataNascimento;
-                cliente.DataAtualizacao = DateTime.UtcNow;
+            // Upload da nova imagem se fornecida
+            if (request.ImagemPerfil != null)
+            {
+                // Deletar imagem antiga se existir
+                if (!string.IsNullOrEmpty(cliente.ImagemPerfilUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(cliente.ImagemPerfilUrl);
+                }
+
+                // Upload da nova imagem
+                var imageBytes = Convert.FromBase64String(request.ImagemPerfil.Base64Data);
+                using var imageStream = new MemoryStream(imageBytes);
+                cliente.ImagemPerfilUrl = await _blobStorageService.UploadImageAsync(
+                    imageStream,
+                    request.ImagemPerfil.FileName,
+                    request.ImagemPerfil.ContentType
+                );
+            }
+
+            // Atualizar propriedades customizadas
+            cliente.Nome = request.Nome;
+            cliente.DataNascimento = request.DataNascimento;
+            cliente.DataAtualizacao = DateTime.UtcNow;
 
                 // Atualizar endereço se existir
                 if (cliente.EnderecoId.HasValue)
