@@ -8,6 +8,9 @@ using Gemona.Application.Interfaces.Services;
 using Gemona.Application.Services;
 using Gemona.Infrastructure.Data.Repositories;
 using Gemona.Infrastructure.Services;
+using Gemona.Infrastructure.ExternalServices.Azure;
+using Gemona.Infrastructure.ExternalServices.OpenCage;
+using Gemona.Infrastructure.ExternalServices.ViaCep;
 using Gemona.Domain.Entities;
 
 namespace Gemona.Infrastructure.Extensions
@@ -78,6 +81,10 @@ namespace Gemona.Infrastructure.Extensions
             // Services de Infraestrutura
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IBlobStorageService, BlobStorageService>();
+            
+            // Services Externos (APIs de terceiros)
+            services.AddHttpClient<ViaCepService>();
+            services.AddHttpClient<IGeocodingService, OpenCageGeocodingService>();
 
             // Services de Aplicação
             services.AddScoped<ICategoriaService, CategoriaService>();
