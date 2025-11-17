@@ -27,6 +27,5 @@ appsettings.Local.json
 Gemona.API/.env
 Gemona.API/appsettings.json
 
-#ignore .md and .http files
-*.md
+#ignore .http files
 *.http
