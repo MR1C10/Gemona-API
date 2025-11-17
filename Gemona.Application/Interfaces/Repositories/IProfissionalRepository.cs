@@ -7,8 +7,10 @@ namespace Gemona.Application.Interfaces.Repositories
     {
         Task<Profissional?> GetByEmailAsync(string email);
         Task<Profissional?> GetByCpfAsync(Cpf cpf);
+        Task<Profissional?> GetByCpfAsync(string cpf);
         Task<bool> EmailExistsAsync(string email);
         Task<bool> CpfExistsAsync(Cpf cpf);
+        Task<bool> CpfExistsAsync(string cpf);
         Task<Profissional?> GetProfissionalWithEstabelecimentoAsync(int profissionalId);
     }
 }

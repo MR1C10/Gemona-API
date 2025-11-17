@@ -6,10 +6,13 @@ namespace Gemona.Application.Interfaces.Repositories
     public interface IEstabelecimentoRepository : IBaseRepository<Estabelecimento>
     {
         Task<Estabelecimento?> GetByCnpjAsync(Cnpj cnpj);
+        Task<Estabelecimento?> GetByCnpjAsync(string cnpj);
         Task<bool> CnpjExistsAsync(Cnpj cnpj);
+        Task<bool> CnpjExistsAsync(string cnpj);
         Task<Estabelecimento?> GetEstabelecimentoCompletoAsync(int estabelecimentoId);
         Task<IEnumerable<Estabelecimento>> GetEstabelecimentosByProfissionalAsync(int profissionalId);
         Task<IEnumerable<Estabelecimento>> GetEstabelecimentosByCidadeAsync(string cidade);
         Task<IEnumerable<Estabelecimento>> GetEstabelecimentosProximosAsync(decimal latitude, decimal longitude, double raioKm);
+        Task<IEnumerable<Estabelecimento>> BuscarEstabelecimentosAsync(string termo);
     }
 }

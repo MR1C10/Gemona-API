@@ -8,6 +8,7 @@ namespace Gemona.Application.Interfaces.Repositories
         Task<IEnumerable<Endereco>> GetEnderecosByCidadeAsync(string cidade);
         Task<IEnumerable<Endereco>> GetEnderecosByEstadoAsync(string estado);
         Task<Endereco?> GetEnderecoByCepAsync(Cep cep);
+        Task<Endereco?> GetEnderecoByCepAsync(string cep);
         Task<IEnumerable<Endereco>> GetEnderecosProximosAsync(decimal latitude, decimal longitude, double raioKm);
     }
 }

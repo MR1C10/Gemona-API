@@ -20,8 +20,14 @@ namespace Gemona.Infrastructure.Data.Repositories
 
         public async Task<Cliente?> GetByCpfAsync(Cpf cpf)
         {
+            return await GetByCpfAsync(cpf.Valor);
+        }
+
+        public async Task<Cliente?> GetByCpfAsync(string cpf)
+        {
+            var cpfObj = new Cpf(cpf);
             return await _dbSet
-                .FirstOrDefaultAsync(c => c.Cpf.Valor == cpf.Valor);
+                .FirstOrDefaultAsync(c => c.Cpf == cpfObj);
         }
 
         public async Task<bool> EmailExistsAsync(string email)
@@ -32,8 +38,14 @@ namespace Gemona.Infrastructure.Data.Repositories
 
         public async Task<bool> CpfExistsAsync(Cpf cpf)
         {
+            return await CpfExistsAsync(cpf.Valor);
+        }
+
+        public async Task<bool> CpfExistsAsync(string cpf)
+        {
+            var cpfObj = new Cpf(cpf);
             return await _dbSet
-                .AnyAsync(c => c.Cpf.Valor == cpf.Valor);
+                .AnyAsync(c => c.Cpf == cpfObj);
         }
 
         public async Task<Cliente?> GetClienteWithEnderecoAsync(int clienteId)
