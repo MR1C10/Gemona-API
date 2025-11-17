@@ -6,59 +6,26 @@ using Gemona.Infrastructure.Extensions;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Gemona.API.Middlewares;
-using Serilog;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-
-// Configuração inicial do Serilog
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
-    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .Enrich.WithProperty("Application", "Gemona.API")
-    .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
-    .WriteTo.File(
-        path: "logs/gemona-.log",
-        rollingInterval: RollingInterval.Day,
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
-        retainedFileCountLimit: 30)
-    .CreateLogger();
-
-try
-{
-    Log.Information("Iniciando aplicação Gemona API");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona Serilog ao host
-builder.Host.UseSerilog();
-
-// Configuração HTTPS
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-    options.HttpsPort = 5269;
-});
+// Configuração de Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
+builder.Logging.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
+builder.Logging.AddFilter("System", LogLevel.Warning);
 
 // Configuração CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-
     options.AddPolicy("Production", policy =>
     {
         policy.WithOrigins(
-                "https://gemona.com.br",
-                "https://www.gemona.com.br",
-                "https://app.gemona.com.br"
+                "https://gemona.com.br", // Exemplo de possível domínio
+                "https://www.gemona.com.br" // Exemplo de possível domínio
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -98,8 +65,8 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API para gerenciamento de serviços e estabelecimentos",
         Contact = new OpenApiContact
         {
-            Name = "Gemona Team",
-            Email = "contato@gemona.com.br"
+            Name = "Maurício Rodrigues",
+            Email = "mauriciorcsouza1206@gmail.com",
         }
     });
 
@@ -132,15 +99,6 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Configuração Health Checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<Gemona.Infrastructure.Data.Context.ApplicationDbContext>(
-        name: "database",
-        tags: new[] { "db", "sql", "mysql" })
-    .AddCheck("api", () => 
-        Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API está respondendo"),
-        tags: new[] { "api" });
-
 // Configuração JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -163,38 +121,13 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
-
-    // Configuração de eventos para debugging (opcional)
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-            {
-                context.Response.Headers.Append("Token-Expired", "true");
-            }
-            return Task.CompletedTask;
-        },
-        OnChallenge = context =>
-        {
-            context.HandleResponse();
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            var result = System.Text.Json.JsonSerializer.Serialize(new
-            {
-                success = false,
-                message = "Não autorizado. Token inválido ou ausente."
-            });
-            return context.Response.WriteAsync(result);
-        }
-    };
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Middleware de tratamento global de exceções (deve ser o primeiro)
+// Middleware de tratamento global de exceções
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
@@ -221,48 +154,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Health Check Endpoints
-app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var response = new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(x => new
-            {
-                name = x.Key,
-                status = x.Value.Status.ToString(),
-                description = x.Value.Description,
-                duration = x.Value.Duration.ToString(),
-                tags = x.Value.Tags
-            }),
-            totalDuration = report.TotalDuration.ToString()
-        };
-        await context.Response.WriteAsJsonAsync(response);
-    }
-});
-
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("db")
-});
-
-app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("api")
-});
-
 app.MapControllers();
 
 app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Aplicação encerrada inesperadamente");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
