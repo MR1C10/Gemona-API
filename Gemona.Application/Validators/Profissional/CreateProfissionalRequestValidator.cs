@@ -40,10 +40,9 @@ namespace Gemona.Application.Validators.Profissional
                 .Matches("^\\(?\\d{2}\\)?[\\s-]?\\d{4,5}-?\\d{4}$")
                 .WithMessage("Telefone inválido. Use formato: (11) 99999-9999");
 
-            RuleFor(x => x.ImagemPerfilUrl)
-                .MaximumLength(500).WithMessage("URL da imagem deve ter no máximo 500 caracteres")
-                .Must(BeAValidUrl).When(x => !string.IsNullOrEmpty(x.ImagemPerfilUrl))
-                .WithMessage("URL da imagem inválida");
+            RuleFor(x => x.ImagemPerfil)
+                .Must(BeAValidBase64Image!).WithMessage("Imagem inválida")
+                .When(x => x.ImagemPerfil != null);
         }
 
         private bool BeAValidCpf(string cpf)
@@ -81,11 +80,35 @@ namespace Gemona.Application.Validators.Profissional
             return cpf.EndsWith(digito);
         }
 
-        private bool BeAValidUrl(string? url)
+        private bool BeAValidBase64Image(DTOs.Shared.Base64ImageDto? image)
         {
-            if (string.IsNullOrWhiteSpace(url)) return true;
-            return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            if (image == null) return true;
+
+            var validContentTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif" };
+            if (!validContentTypes.Contains(image.ContentType?.ToLower()))
+                return false;
+
+            var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+            var fileExtension = System.IO.Path.GetExtension(image.FileName).ToLower();
+            if (!validExtensions.Contains(fileExtension))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(image.Base64Data))
+                return false;
+
+            try
+            {
+                var imageBytes = Convert.FromBase64String(image.Base64Data);
+                const int maxSizeInBytes = 5 * 1024 * 1024;
+                if (imageBytes.Length > maxSizeInBytes)
+                    return false;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

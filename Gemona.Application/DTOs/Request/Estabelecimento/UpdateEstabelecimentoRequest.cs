@@ -1,3 +1,5 @@
+using Gemona.Application.DTOs.Shared;
+
 namespace Gemona.Application.DTOs.Request.Estabelecimento
 {
     public class UpdateEstabelecimentoRequest
@@ -6,7 +8,7 @@ namespace Gemona.Application.DTOs.Request.Estabelecimento
         public string? Telefone { get; set; }
         public string Email { get; set; } = string.Empty;
         public string? Descricao { get; set; }
-        public string? ImagemEstabelecimentoUrl { get; set; }
+        public Base64ImageDto? ImagemEstabelecimento { get; set; }
 
         public string Rua { get; set; } = string.Empty;
         public string? Numero { get; set; }

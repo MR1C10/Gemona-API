@@ -9,7 +9,7 @@ namespace Gemona.Application.DTOs.Request.Estabelecimento
         public string Email { get; set; } = string.Empty;
         public string? Descricao { get; set; }
         public string Cnpj { get; set; } = string.Empty;
-        public string? ImagemEstabelecimentoUrl { get; set; }
+        public Base64ImageDto? ImagemEstabelecimento { get; set; }
         public int ProfissionalId { get; set; }
 
         public string Rua { get; set; } = string.Empty;

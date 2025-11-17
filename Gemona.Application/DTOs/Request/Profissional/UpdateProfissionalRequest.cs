@@ -1,3 +1,5 @@
+using Gemona.Application.DTOs.Shared;
+
 namespace Gemona.Application.DTOs.Request.Profissional
 {
     public class UpdateProfissionalRequest
@@ -5,7 +7,7 @@ namespace Gemona.Application.DTOs.Request.Profissional
         public string Nome { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Telefone { get; set; } = string.Empty;
-        public string? ImagemPerfilUrl { get; set; }
+        public Base64ImageDto? ImagemPerfil { get; set; }
         public DateTime DataNascimento { get; set; }
     }
 }

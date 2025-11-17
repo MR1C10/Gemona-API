@@ -1,3 +1,4 @@
+using Gemona.Application.DTOs.Shared;
 using Gemona.Domain.Enums;
 
 namespace Gemona.Application.DTOs.Request.Avaliacao
@@ -8,6 +9,6 @@ namespace Gemona.Application.DTOs.Request.Avaliacao
         public int ClienteId { get; set; }
         public NotaAvaliacao Nota { get; set; }
         public string? Comentario { get; set; }
-        public string? ImagemComentarioUrl { get; set; }
+        public Base64ImageDto? ImagemComentario { get; set; }
     }
 }

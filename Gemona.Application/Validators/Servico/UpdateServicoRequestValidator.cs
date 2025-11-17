@@ -3,9 +3,9 @@ using Gemona.Application.DTOs.Request.Servico;
 
 namespace Gemona.Application.Validators.Servico
 {
-    public class CreateServicoRequestValidator : AbstractValidator<CreateServicoRequest>
+    public class UpdateServicoRequestValidator : AbstractValidator<UpdateServicoRequest>
     {
-        public CreateServicoRequestValidator()
+        public UpdateServicoRequestValidator()
         {
             RuleFor(x => x.Nome)
                 .NotEmpty().WithMessage("Nome é obrigatório")
@@ -19,10 +19,6 @@ namespace Gemona.Application.Validators.Servico
                 .NotEmpty().WithMessage("Preço é obrigatório")
                 .GreaterThan(0).WithMessage("Preço deve ser maior que zero")
                 .LessThanOrEqualTo(999999.99m).WithMessage("Preço deve ser menor que 999.999,99");
-
-            RuleFor(x => x.EstabelecimentoId)
-                .NotEmpty().WithMessage("EstabelecimentoId é obrigatório")
-                .GreaterThan(0).WithMessage("EstabelecimentoId inválido");
 
             RuleFor(x => x.SubCategoriaId)
                 .NotEmpty().WithMessage("SubCategoriaId é obrigatória")

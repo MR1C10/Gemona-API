@@ -3,18 +3,14 @@ using Gemona.Application.DTOs.Request.Estabelecimento;
 
 namespace Gemona.Application.Validators.Estabelecimento
 {
-    public class CreateEstabelecimentoRequestValidator : AbstractValidator<CreateEstabelecimentoRequest>
+    public class UpdateEstabelecimentoRequestValidator : AbstractValidator<UpdateEstabelecimentoRequest>
     {
-        public CreateEstabelecimentoRequestValidator()
+        public UpdateEstabelecimentoRequestValidator()
         {
             RuleFor(x => x.Nome)
                 .NotEmpty().WithMessage("Nome é obrigatório")
                 .MinimumLength(3).WithMessage("Nome deve ter no mínimo 3 caracteres")
                 .MaximumLength(100).WithMessage("Nome deve ter no máximo 100 caracteres");
-
-            RuleFor(x => x.Cnpj)
-                .NotEmpty().WithMessage("CNPJ é obrigatório")
-                .Must(BeAValidCnpj).WithMessage("CNPJ inválido");
 
             RuleFor(x => x.Telefone)
                 .NotEmpty().WithMessage("Telefone é obrigatório")
@@ -28,9 +24,6 @@ namespace Gemona.Application.Validators.Estabelecimento
 
             RuleFor(x => x.Descricao)
                 .MaximumLength(500).WithMessage("Descrição deve ter no máximo 500 caracteres");
-
-            RuleFor(x => x.ProfissionalId)
-                .GreaterThan(0).WithMessage("ProfissionalId inválido");
 
             // Validação de Endereço
             RuleFor(x => x.Rua)
@@ -66,41 +59,6 @@ namespace Gemona.Application.Validators.Estabelecimento
             RuleFor(x => x.ImagemEstabelecimento)
                 .Must(BeAValidBase64Image!).WithMessage("Imagem inválida")
                 .When(x => x.ImagemEstabelecimento != null);
-        }
-
-        private bool BeAValidCnpj(string cnpj)
-        {
-            if (string.IsNullOrWhiteSpace(cnpj)) return false;
-            
-            cnpj = cnpj.Replace(".", "").Replace("/", "").Replace("-", "").Replace(" ", "");
-            
-            if (cnpj.Length != 14) return false;
-            if (cnpj.Distinct().Count() == 1) return false;
-
-            var multiplicador1 = new int[12] { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-            var multiplicador2 = new int[13] { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-
-            var tempCnpj = cnpj.Substring(0, 12);
-            var soma = 0;
-
-            for (int i = 0; i < 12; i++)
-                soma += int.Parse(tempCnpj[i].ToString()) * multiplicador1[i];
-
-            var resto = (soma % 11);
-            resto = resto < 2 ? 0 : 11 - resto;
-
-            var digito = resto.ToString();
-            tempCnpj = tempCnpj + digito;
-            soma = 0;
-
-            for (int i = 0; i < 13; i++)
-                soma += int.Parse(tempCnpj[i].ToString()) * multiplicador2[i];
-
-            resto = (soma % 11);
-            resto = resto < 2 ? 0 : 11 - resto;
-            digito = digito + resto.ToString();
-
-            return cnpj.EndsWith(digito);
         }
 
         private bool BeAValidBase64Image(DTOs.Shared.Base64ImageDto? image)

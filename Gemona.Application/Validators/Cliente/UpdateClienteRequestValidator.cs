@@ -1,36 +1,36 @@
 using FluentValidation;
-using Gemona.Application.DTOs.Request.Servico;
+using Gemona.Application.DTOs.Request.Cliente;
 
-namespace Gemona.Application.Validators.Servico
+namespace Gemona.Application.Validators.Cliente
 {
-    public class CreateServicoRequestValidator : AbstractValidator<CreateServicoRequest>
+    public class UpdateClienteRequestValidator : AbstractValidator<UpdateClienteRequest>
     {
-        public CreateServicoRequestValidator()
+        public UpdateClienteRequestValidator()
         {
             RuleFor(x => x.Nome)
                 .NotEmpty().WithMessage("Nome é obrigatório")
                 .MinimumLength(3).WithMessage("Nome deve ter no mínimo 3 caracteres")
-                .MaximumLength(100).WithMessage("Nome deve ter no máximo 100 caracteres");
+                .MaximumLength(100).WithMessage("Nome deve ter no máximo 100 caracteres")
+                .Matches("^[a-zA-ZÀ-ÿ\\s]+$").WithMessage("Nome deve conter apenas letras");
 
-            RuleFor(x => x.Descricao)
-                .MaximumLength(500).WithMessage("Descrição deve ter no máximo 500 caracteres");
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email é obrigatório")
+                .EmailAddress().WithMessage("Email inválido")
+                .MaximumLength(256).WithMessage("Email deve ter no máximo 256 caracteres");
 
-            RuleFor(x => x.Preco)
-                .NotEmpty().WithMessage("Preço é obrigatório")
-                .GreaterThan(0).WithMessage("Preço deve ser maior que zero")
-                .LessThanOrEqualTo(999999.99m).WithMessage("Preço deve ser menor que 999.999,99");
+            RuleFor(x => x.DataNascimento)
+                .NotEmpty().WithMessage("Data de nascimento é obrigatória")
+                .LessThan(DateTime.Now.AddYears(-18)).WithMessage("Cliente deve ter pelo menos 18 anos")
+                .GreaterThan(DateTime.Now.AddYears(-120)).WithMessage("Data de nascimento inválida");
 
-            RuleFor(x => x.EstabelecimentoId)
-                .NotEmpty().WithMessage("EstabelecimentoId é obrigatório")
-                .GreaterThan(0).WithMessage("EstabelecimentoId inválido");
+            RuleFor(x => x.Telefone)
+                .NotEmpty().WithMessage("Telefone é obrigatório")
+                .Matches("^\\(?\\d{2}\\)?[\\s-]?\\d{4,5}-?\\d{4}$")
+                .WithMessage("Telefone inválido. Use formato: (11) 99999-9999");
 
-            RuleFor(x => x.SubCategoriaId)
-                .NotEmpty().WithMessage("SubCategoriaId é obrigatória")
-                .GreaterThan(0).WithMessage("SubCategoriaId inválida");
-
-            RuleFor(x => x.ImagemServico)
+            RuleFor(x => x.ImagemPerfil)
                 .Must(BeAValidBase64Image!).WithMessage("Imagem inválida")
-                .When(x => x.ImagemServico != null);
+                .When(x => x.ImagemPerfil != null);
         }
 
         private bool BeAValidBase64Image(DTOs.Shared.Base64ImageDto? image)
