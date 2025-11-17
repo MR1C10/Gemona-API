@@ -1,0 +1,56 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: gemona_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_change_me}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gemona_db}
+      MYSQL_USER: ${MYSQL_USER:-gemona_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-gemona_password_change_me}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gemona_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Gemona API
+  gemona_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gemona_api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-gemona_db};User=${MYSQL_USER:-gemona_user};Password=${MYSQL_PASSWORD:-gemona_password_change_me};
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY:-your_jwt_secret_key_here_at_least_32_characters}
+      - JwtSettings__Issuer=GemonaAPI
+      - JwtSettings__Audience=GemonaClients
+      - JwtSettings__ExpiresInDays=7
+      - AzureStorage__ConnectionString=${AZURE_STORAGE_CONNECTION_STRING}
+      - AzureStorage__ContainerName=images
+      - OpenCage__ApiKey=${OPENCAGE_API_KEY}
+    ports:
+      - "5268:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - gemona_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  gemona_network:
+    driver: bridge
