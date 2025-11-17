@@ -86,6 +86,16 @@ namespace Gemona.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("buscar")]
+        public async Task<IActionResult> Buscar([FromQuery] string termo)
+        {
+            var result = await _estabelecimentoService.BuscarEstabelecimentosAsync(termo);
+            if (!result.Success)
+                return BadRequest(result);
+            
+            return Ok(result);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Profissional")]
         public async Task<IActionResult> Create([FromBody] CreateEstabelecimentoRequest request)

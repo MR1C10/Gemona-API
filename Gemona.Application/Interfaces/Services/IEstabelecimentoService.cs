@@ -13,6 +13,7 @@ namespace Gemona.Application.Interfaces.Services
         Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosByProfissionalAsync(int profissionalId);
         Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosByCidadeAsync(string cidade);
         Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> GetEstabelecimentosProximosAsync(decimal latitude, decimal longitude, double raioKm);
+        Task<ApiResponse<IEnumerable<EstabelecimentoResponse>>> BuscarEstabelecimentosAsync(string termo);
         Task<ApiResponse<EstabelecimentoResponse>> CreateAsync(CreateEstabelecimentoRequest request);
         Task<ApiResponse<EstabelecimentoResponse>> UpdateAsync(int id, UpdateEstabelecimentoRequest request);
         Task<ApiResponse<bool>> DeleteAsync(int id);
