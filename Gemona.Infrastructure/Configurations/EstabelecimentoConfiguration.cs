@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Gemona.Domain.Entities;
 using Gemona.Domain.ValueObjects;
 

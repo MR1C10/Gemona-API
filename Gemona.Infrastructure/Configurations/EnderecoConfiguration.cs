@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Gemona.Domain.Entities;
 using Gemona.Domain.ValueObjects;
 
@@ -45,10 +46,17 @@ namespace Gemona.Infrastructure.Configurations
             // Configuração do Value Object CEP
             builder.Property(e => e.Cep)
                 .HasColumnName("cep")
-                .HasMaxLength(8)
                 .HasConversion(
                     cep => cep.Valor,
                     valor => new Cep(valor))
+                .Metadata.SetValueComparer(
+                    new ValueComparer<Cep>(
+                        (c1, c2) => c1 != null && c2 != null && c1.Valor == c2.Valor,
+                        c => c.Valor.GetHashCode(),
+                        c => new Cep(c.Valor)));
+
+            builder.Property(e => e.Cep)
+                .HasMaxLength(8)
                 .IsRequired();
 
             builder.Property(e => e.Latitude)

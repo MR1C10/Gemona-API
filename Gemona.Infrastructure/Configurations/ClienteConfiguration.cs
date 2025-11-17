@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Gemona.Domain.Entities;
 using Gemona.Domain.ValueObjects;
 
@@ -19,6 +20,13 @@ namespace Gemona.Infrastructure.Configurations
                 .HasConversion(
                     cpf => cpf.Valor,
                     valor => new Cpf(valor))
+                .Metadata.SetValueComparer(
+                    new ValueComparer<Cpf>(
+                        (c1, c2) => c1 != null && c2 != null && c1.Valor == c2.Valor,
+                        c => c.Valor.GetHashCode(),
+                        c => new Cpf(c.Valor)));
+
+            builder.Property(c => c.Cpf)
                 .HasMaxLength(11)
                 .IsRequired();
 
