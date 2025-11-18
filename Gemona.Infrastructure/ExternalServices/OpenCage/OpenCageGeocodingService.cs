@@ -36,7 +36,7 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
             {
                 _logger.LogInformation("Buscando CEP {Cep}", cep);
 
-                // 1. Buscar endereço no ViaCEP (API brasileira, sem limite de requisições)
+                // Busca endereço no ViaCEP
                 var viaCepResult = await _viaCepService.BuscarCepAsync(cep);
                 
                 if (viaCepResult == null)
@@ -45,19 +45,18 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
                     return null;
                 }
 
-                // 2. Montar endereço completo para buscar coordenadas no OpenCage
+                // Monta endereço completo para buscar coordenadas no OpenCage
                 var enderecoCompleto = $"{viaCepResult.Logradouro}, {viaCepResult.Bairro}, {viaCepResult.Localidade}, {viaCepResult.Uf}, Brazil";
                 
                 _logger.LogInformation("Buscando coordenadas para: {Endereco}", enderecoCompleto);
 
-                // 3. Buscar coordenadas no OpenCage
+                // Busca coordenadas no OpenCage
                 var coordenadas = await BuscarCoordenadasAsync(enderecoCompleto);
 
                 if (coordenadas == null)
                 {
                     _logger.LogWarning("Não foi possível obter coordenadas para o endereço: {Endereco}", enderecoCompleto);
                     
-                    // Retorna dados do ViaCEP sem coordenadas
                     return new EnderecoResponse
                     {
                         Rua = viaCepResult.Logradouro,
@@ -72,7 +71,7 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
                     };
                 }
 
-                // 4. Retornar dados combinados (ViaCEP + OpenCage)
+                // Retornar dados combinados (ViaCEP + OpenCage)
                 return new EnderecoResponse
                 {
                     Rua = viaCepResult.Logradouro,

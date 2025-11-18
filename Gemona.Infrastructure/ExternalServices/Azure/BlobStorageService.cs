@@ -33,7 +33,7 @@ public class BlobStorageService : IBlobStorageService
     {
         try
         {
-            // Gerar nome único para o blob (evita conflitos)
+            // Gerar nome único para o blob
             var blobName = $"{Guid.NewGuid()}_{fileName}";
             var blobClient = _containerClient.GetBlobClient(blobName);
 
