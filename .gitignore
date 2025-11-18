@@ -23,9 +23,9 @@ Thumbs.db
 
 # Local settings (for sensitive data)
 appsettings.Local.json
+appsettings.Development.json
 # Ignore environment and local appsettings in Gemona.API
-Gemona.API/.env
-Gemona.API/appsettings.json
+.env
 
 #ignore .http files
 *.http

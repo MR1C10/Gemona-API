@@ -1,0 +1,19 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=your_host.railway.app;Database=railway;User=root;Password=your_password;Port=your_port"
+  },
+  "Jwt": {
+    "Key": "your_jwt_secret_key_here_minimum_32_characters_required_for_security",
+    "Issuer": "GemonaAPI",
+    "Audience": "GemonaClients",
+    "ExpireDays": 7
+  },
+  "AzureStorage": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=your_account_name;AccountKey=your_account_key;EndpointSuffix=core.windows.net",
+    "ContainerName": "images"
+  },
+  "OpenCage": {
+    "ApiKey": "your_opencage_api_key_here"
+  },
+  "AllowedHosts": "*"
+}
