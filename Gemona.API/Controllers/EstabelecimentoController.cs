@@ -97,7 +97,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Profissional")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateEstabelecimentoRequest request)
         {
             var result = await _estabelecimentoService.CreateAsync(request);
@@ -108,7 +108,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Profissional")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateEstabelecimentoRequest request)
         {
             var result = await _estabelecimentoService.UpdateAsync(id, request);

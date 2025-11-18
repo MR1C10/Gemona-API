@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Gemona.Application.Interfaces.Services;
 using Gemona.Application.DTOs.Request.Categoria;
 
@@ -46,6 +47,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateCategoriaRequest request)
         {
             var result = await _categoriaService.CreateAsync(request);
@@ -56,6 +58,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoriaRequest request)
         {
             var result = await _categoriaService.UpdateAsync(id, request);
@@ -66,6 +69,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _categoriaService.DeleteAsync(id);
