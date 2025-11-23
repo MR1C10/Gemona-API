@@ -15,6 +15,6 @@ namespace Gemona.Application.DTOs.Response.Endereco
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public string EnderecoCompleto => $"{Rua}, {Numero} - {Bairro}, {Cidade}/{Estado}";
-        public string CepFormatado => $"{Cep.Substring(0, 5)}-{Cep.Substring(5, 3)}";
+        public string CepFormatado => $"{Cep.Substring(0, 5)}-{Cep.Substring(6, 3)}";
     }
 }
