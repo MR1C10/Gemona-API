@@ -18,7 +18,7 @@ O projeto Gemona utiliza a API do **OpenCage Geocoding** para obter coordenadas 
 ```json
 {
   "OpenCage": {
-    "ApiKey": "b730f750896e4a74bf8bd350e5315d02"
+    "ApiKey": "" // Configure sua chave via variáveis de ambiente ou appsettings.Development.json (gitignored)
   }
 }
 ```

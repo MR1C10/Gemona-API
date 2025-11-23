@@ -98,47 +98,48 @@ Sistema completo de upload, download e gerenciamento de imagens usando **Azure B
 
 ---
 
-## 🌐 Endpoints da API
+## 🌐 Upload de Imagens
 
-### 1. **POST /api/image/upload** - Upload de Imagem
+O backend aceita imagens em Base64 como parte dos DTOs das entidades relevantes (por exemplo: `CreateClienteRequest`, `CreateProfissionalRequest`, `CreateEstabelecimentoRequest`, `CreateServicoRequest`, `CreateAvaliacaoRequest`).
 
-**Descrição:** Faz upload de uma imagem para o Azure Blob Storage
+- **Content-Type:** `application/json`
+- **Campo:** `Base64ImageDto` (campo aninhado dentro do request, ex.: `ImagemPerfil`, `ImagemEstabelecimento`, `ImagemServico`, `ImagemComentario`)
 
-**Autenticação:** Não requerida (pode adicionar se necessário)
+### Como enviar uma imagem (exemplo: criar cliente)
 
-**Content-Type:** `multipart/form-data`
+POST /api/cliente
 
-**Request Body:**
-```
-FormData:
-  Image: [arquivo]
-```
+Content-Type: application/json
 
-**Response (200 OK):**
+Request body (exemplo mínimo):
+
 ```json
 {
-  "success": true,
-  "message": "Imagem enviada com sucesso",
-  "data": {
-    "blobName": "a1b2c3d4-5678-90ab-cdef-123456789abc_foto.jpg",
-    "url": "https://gemonastorage2025.blob.core.windows.net/images/a1b2c3d4-5678-90ab-cdef-123456789abc_foto.jpg",
-    "fileName": "foto.jpg",
-    "size": 245678,
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "cpf": "12345678900",
+  "senha": "senha123",
+  "imagemPerfil": {
+    "fileName": "perfil.jpg",
     "contentType": "image/jpeg",
-    "uploadedAt": "2025-11-04T20:30:00Z"
+    "base64Data": "<BASE64_DO_ARQUIVO_AQUI>"
   },
-  "errors": null
+  "rua": "Avenida Paulista",
+  "cep": "01310-100"
 }
 ```
 
-**Response (400 Bad Request):**
-```json
-{
-  "success": false,
-  "message": "A imagem excede o tamanho máximo permitido de 5MB",
-  "data": null,
-  "errors": ["A imagem excede o tamanho máximo permitido de 5MB"]
-}
+Response: o serviço converte o Base64 para `Stream`, faz o upload para o Azure Blob Storage via `BlobStorageService` e salva a URL resultante no banco (normalmente no recurso criado). A resposta da API inclui a entidade criada com o campo de URL preenchido.
+
+### Observações sobre autenticação
+- Endpoints de criação para `Cliente` são `AllowAnonymous` (registro público).
+- Para `Profissional`, `Estabelecimento`, `Servico` e `Avaliacao` os endpoints podem requerer autenticação/roles — verifique os controllers específicos para regras (ex.: `ProfissionalController`, `EstabelecimentoController`).
+
+### Vantagens deste fluxo
+- Simplifica o frontend (envio via JSON) e testes automatizados.
+- Mantém as imagens dentro do fluxo de criação/atualização de entidades.
+
+---
 ```
 
 ---
@@ -480,44 +481,26 @@ public interface IBlobStorageService
 
 ---
 
-### **2. ImageController (API)**
+### DTO utilizado (existente no projeto)
 
 ```csharp
-// Localização: Gemona.API/Controllers/ImageController.cs
-
-[ApiController]
-[Route("api/[controller]")]
-public class ImageController : ControllerBase
+// Localização: Gemona.Application/DTOs/Shared/Base64ImageDto.cs
+public class Base64ImageDto
 {
-    // 4 endpoints: Upload, Delete, Download, GetUrl
+  public string FileName { get; set; } = string.Empty;
+  public string ContentType { get; set; } = string.Empty;
+  public string Base64Data { get; set; } = string.Empty;
 }
 ```
 
-**Responsabilidades:**
-- Receber requisições HTTP
-- Validar requests
-- Chamar BlobStorageService
-- Retornar responses padronizadas
+### Onde adicionar imagens
+- `CreateClienteRequest` / `UpdateClienteRequest` → `ImagemPerfil`
+- `CreateProfissionalRequest` / `UpdateProfissionalRequest` → `ImagemPerfil`
+- `CreateEstabelecimentoRequest` / `UpdateEstabelecimentoRequest` → `ImagemEstabelecimento`
+- `CreateServicoRequest` / `UpdateServicoRequest` → `ImagemServico`
+- `CreateAvaliacaoRequest` / `UpdateAvaliacaoRequest` → `ImagemComentario`
 
----
-
-### **3. DTOs**
-
-```csharp
-// Request
-public class ImageUploadRequest
-{
-    public IFormFile? Image { get; set; }
-}
-
-// Response
-public class ImageUploadResponse
-{
-    public string BlobName { get; set; }
-    public string Url { get; set; }
-    public string FileName { get; set; }
-    public long Size { get; set; }
-    public string ContentType { get; set; }
+Esses DTOs já têm validações (tamanho máximo, tipos permitidos) na pasta `Gemona.Application/Validators`.
     public DateTime UploadedAt { get; set; }
 }
 ```

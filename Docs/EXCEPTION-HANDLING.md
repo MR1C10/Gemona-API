@@ -1,6 +1,6 @@
 # Exception Handling - Implementação Completa
 
-## ✅ O que foi implementado
+## O que foi implementado
 
 ### 1. Custom Exceptions (3 classes)
 
