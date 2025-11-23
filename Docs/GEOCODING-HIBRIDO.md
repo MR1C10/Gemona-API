@@ -511,4 +511,4 @@ if (cep.Length != 8 || !cep.All(char.IsDigit))
 
 ---
 
-**✅ Sistema otimizado, econômico e resiliente!**
+**✅ Sistema otimizado e econômico!**
