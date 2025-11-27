@@ -519,7 +519,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ✅ Documentação Completa
 ✅ Docker Ready
 ✅ Production Ready
-🚀 V1.0.0 Released
+🚀 V1.0.3 Released
 ```
 
 ---
