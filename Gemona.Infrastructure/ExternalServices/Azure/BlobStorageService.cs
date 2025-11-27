@@ -3,6 +3,7 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Gemona.Application.Interfaces.Services;
+using Gemona.Application.DTOs.Shared; // Changed from BlobDownloadResult to ImageDownloadResult
 
 namespace Gemona.Infrastructure.ExternalServices.Azure;
 
@@ -91,7 +92,7 @@ public class BlobStorageService : IBlobStorageService
     /// <summary>
     /// Baixa uma imagem do Azure Blob Storage
     /// </summary>
-    public async Task<Stream> DownloadImageAsync(string blobName)
+    public async Task<ImageDownloadResult> DownloadImageAsync(string blobName)
     {
         try
         {
@@ -103,10 +104,15 @@ public class BlobStorageService : IBlobStorageService
                 throw new FileNotFoundException($"Imagem {blobName} não encontrada");
             }
 
+            BlobProperties properties = await blobClient.GetPropertiesAsync();
             var downloadResponse = await blobClient.DownloadAsync();
             _logger.LogInformation("Imagem {BlobName} baixada com sucesso", blobName);
 
-            return downloadResponse.Value.Content;
+            return new ImageDownloadResult
+            {
+                Content = downloadResponse.Value.Content,
+                ContentType = properties.ContentType
+            };
         }
         catch (Exception ex)
         {
