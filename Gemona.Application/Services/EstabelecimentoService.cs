@@ -44,7 +44,7 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<EstabelecimentoResponse?>> GetByIdAsync(int id)
         {
-            var estabelecimento = await _estabelecimentoRepository.GetByIdAsync(id);
+            var estabelecimento = await _estabelecimentoRepository.GetEstabelecimentoCompletoAsync(id);
             if (estabelecimento == null)
             {
                 throw new NotFoundException("Estabelecimento", id);
@@ -333,19 +333,56 @@ namespace Gemona.Application.Services
         // Métodos de mapeamento
         private static EstabelecimentoResponse MapToResponse(Estabelecimento estabelecimento)
         {
-            return new EstabelecimentoResponse
+            var response = new EstabelecimentoResponse
             {
                 EstabelecimentoId = estabelecimento.EstabelecimentoId,
                 Nome = estabelecimento.Nome,
                 Cnpj = estabelecimento.Cnpj.Valor,
                 Telefone = estabelecimento.Telefone,
                 Email = estabelecimento.Email,
+                Descricao = estabelecimento.Descricao, // Adicionado
                 ImagemEstabelecimentoUrl = estabelecimento.ImagemEstabelecimentoUrl,
                 DataCriacao = estabelecimento.DataCriacao,
                 DataAtualizacao = estabelecimento.DataAtualizacao,
                 Ativo = estabelecimento.Ativo,
-                ProfissionalId = estabelecimento.ProfissionalId
+                ProfissionalId = estabelecimento.ProfissionalId,
+                ProfissionalNome = estabelecimento.Profissional?.Nome // Adicionado, verifica se Profissional é null
             };
+
+            // Mapear Endereco
+            if (estabelecimento.Endereco != null)
+            {
+                response.Endereco = new EnderecoResponse
+                {
+                    EnderecoId = estabelecimento.Endereco.EnderecoId,
+                    Rua = estabelecimento.Endereco.Rua,
+                    Numero = estabelecimento.Endereco.Numero,
+                    Bairro = estabelecimento.Endereco.Bairro,
+                    Complemento = estabelecimento.Endereco.Complemento,
+                    Cidade = estabelecimento.Endereco.Cidade,
+                    Estado = estabelecimento.Endereco.Estado,
+                    Cep = estabelecimento.Endereco.Cep.Valor,
+                    Latitude = estabelecimento.Endereco.Latitude,
+                    Longitude = estabelecimento.Endereco.Longitude,
+                    DataCriacao = estabelecimento.Endereco.DataCriacao,
+                    DataAtualizacao = estabelecimento.Endereco.DataAtualizacao,
+                    Ativo = estabelecimento.Endereco.Ativo
+                };
+            }
+
+            // Mapear Horarios (HorariosFuncionamento)
+            if (estabelecimento.HorariosFuncionamento?.Any() == true)
+            {
+                response.Horarios = estabelecimento.HorariosFuncionamento.Select(h => new DTOs.Shared.HorarioFuncionamentoResponse
+                {
+                    DiaSemana = h.DiaSemana,
+                    HoraAbertura = h.HoraAbertura,
+                    HoraFechamento = h.HoraFechamento,
+                    Fechado = h.Fechado
+                }).ToList();
+            }
+
+            return response;
         }
 
         private static EstabelecimentoCompletoResponse MapToResponseCompleto(Estabelecimento estabelecimento)

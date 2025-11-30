@@ -91,5 +91,15 @@ namespace Gemona.Infrastructure.Data.Repositories
                            e.Endereco.Bairro.Contains(termo))
                 .ToListAsync();
         }
+
+        public override async Task<IEnumerable<Estabelecimento>> GetAllActiveAsync()
+        {
+            return await _dbSet
+                .Where(e => e.Ativo)
+                .Include(e => e.Endereco)
+                .Include(e => e.Profissional)
+                .Include(e => e.HorariosFuncionamento)
+                .ToListAsync();
+        }
     }
 }
