@@ -1,3 +1,4 @@
+using Gemona.Domain.ValueObjects;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,8 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
                     _logger.LogWarning("CEP {Cep} não encontrado no ViaCEP", cep);
                     return null;
                 }
+                
+                var cepVO = new Cep(viaCepResult.Cep);
 
                 // Monta endereço completo para buscar coordenadas no OpenCage
                 var enderecoCompleto = $"{viaCepResult.Logradouro}, {viaCepResult.Bairro}, {viaCepResult.Localidade}, {viaCepResult.Uf}, Brazil";
@@ -65,7 +68,7 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
                         Bairro = viaCepResult.Bairro,
                         Cidade = viaCepResult.Localidade,
                         Estado = viaCepResult.Uf,
-                        Cep = viaCepResult.Cep,
+                        Cep = cepVO.Valor,
                         Latitude = 0,
                         Longitude = 0
                     };
@@ -80,7 +83,7 @@ namespace Gemona.Infrastructure.ExternalServices.OpenCage
                     Bairro = viaCepResult.Bairro,
                     Cidade = viaCepResult.Localidade,
                     Estado = viaCepResult.Uf,
-                    Cep = viaCepResult.Cep,
+                    Cep = cepVO.Valor,
                     Latitude = coordenadas.Value.Latitude ?? 0,
                     Longitude = coordenadas.Value.Longitude ?? 0
                 };
