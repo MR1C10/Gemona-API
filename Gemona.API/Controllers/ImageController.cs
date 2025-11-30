@@ -34,7 +34,7 @@ namespace Gemona.API.Controllers
                 var result = await _blobStorageService.DownloadImageAsync(blobName);
 
                 // Define o Content-Disposition para exibição inline
-                Response.Headers.Add("Content-Disposition", new ContentDisposition { Inline = true, FileName = blobName }.ToString());
+                Response.Headers.Append("Content-Disposition", new ContentDisposition { Inline = true, FileName = blobName }.ToString());
 
                 return File(result.Content, result.ContentType);
             }
