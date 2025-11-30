@@ -4,6 +4,7 @@ using Gemona.Application.Helpers;
 using Gemona.Infrastructure.Data.Context;
 using Gemona.Domain.Entities;
 using Gemona.Domain.ValueObjects;
+using System.Linq;
 
 namespace Gemona.Infrastructure.Data.Repositories
 {
@@ -11,6 +12,15 @@ namespace Gemona.Infrastructure.Data.Repositories
     {
         public EstabelecimentoRepository(ApplicationDbContext context) : base(context)
         {
+        }
+
+        private IQueryable<Estabelecimento> GetFullQuery()
+        {
+            return _dbSet
+                .AsNoTracking() // Melhora a performance para consultas de leitura
+                .Include(e => e.Endereco)
+                .Include(e => e.Profissional)
+                .Include(e => e.HorariosFuncionamento);
         }
 
         public async Task<Estabelecimento?> GetByCnpjAsync(Cnpj cnpj)
@@ -21,7 +31,7 @@ namespace Gemona.Infrastructure.Data.Repositories
         public async Task<Estabelecimento?> GetByCnpjAsync(string cnpj)
         {
             var cnpjObj = new Cnpj(cnpj);
-            return await _dbSet
+            return await GetFullQuery()
                 .FirstOrDefaultAsync(e => e.Cnpj == cnpjObj);
         }
 
@@ -39,38 +49,32 @@ namespace Gemona.Infrastructure.Data.Repositories
 
         public async Task<Estabelecimento?> GetEstabelecimentoCompletoAsync(int estabelecimentoId)
         {
-            return await _dbSet
-                .Include(e => e.Endereco)
-                .Include(e => e.Profissional)
-                .Include(e => e.HorariosFuncionamento)
-                .Include(e => e.Servicos)
+            return await GetFullQuery()
+                .Include(e => e.Servicos) // Inclui Serviços apenas aqui
                 .FirstOrDefaultAsync(e => e.EstabelecimentoId == estabelecimentoId);
         }
 
         public async Task<IEnumerable<Estabelecimento>> GetEstabelecimentosByProfissionalAsync(int profissionalId)
         {
-            return await _dbSet
+            return await GetFullQuery()
                 .Where(e => e.ProfissionalId == profissionalId)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Estabelecimento>> GetEstabelecimentosByCidadeAsync(string cidade)
         {
-            return await _dbSet
-                .Include(e => e.Endereco)
-                .Where(e => e.Endereco.Cidade == cidade)
+            return await GetFullQuery()
+                .Where(e => e.Endereco != null && e.Endereco.Cidade == cidade) // Adicionado null check para e.Endereco
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Estabelecimento>> GetEstabelecimentosProximosAsync(decimal latitude, decimal longitude, double raioKm)
         {
-            var estabelecimentos = await _dbSet
-                .Include(e => e.Endereco)
-                .ToListAsync();
+            var estabelecimentos = await GetFullQuery().ToListAsync();
 
             // Filtra por distância usando Haversine
             return estabelecimentos
-                .Where(e => GeoHelper.CalcularDistancia(
+                .Where(e => e.Endereco != null && GeoHelper.CalcularDistancia( // Adicionado null check para e.Endereco
                     latitude, longitude,
                     e.Endereco.Latitude, e.Endereco.Longitude
                 ) <= raioKm)
@@ -83,22 +87,17 @@ namespace Gemona.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Estabelecimento>> BuscarEstabelecimentosAsync(string termo)
         {
-            return await _dbSet
-                .Include(e => e.Endereco)
+            return await GetFullQuery()
                 .Where(e => e.Nome.Contains(termo) || 
-                           e.Descricao!.Contains(termo) ||
-                           e.Endereco.Cidade.Contains(termo) ||
-                           e.Endereco.Bairro.Contains(termo))
+                           (e.Descricao != null && e.Descricao.Contains(termo)) || // Adicionado null check
+                           (e.Endereco != null && (e.Endereco.Cidade.Contains(termo) || e.Endereco.Bairro.Contains(termo)))) // Adicionado null check
                 .ToListAsync();
         }
 
         public override async Task<IEnumerable<Estabelecimento>> GetAllActiveAsync()
         {
-            return await _dbSet
+            return await GetFullQuery()
                 .Where(e => e.Ativo)
-                .Include(e => e.Endereco)
-                .Include(e => e.Profissional)
-                .Include(e => e.HorariosFuncionamento)
                 .ToListAsync();
         }
     }
