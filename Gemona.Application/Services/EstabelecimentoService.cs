@@ -189,15 +189,61 @@ namespace Gemona.Application.Services
                 Cnpj = cnpjValueObject,
                 Telefone = request.Telefone,
                 Email = request.Email,
+                Descricao = request.Descricao,
                 ImagemEstabelecimentoUrl = imagemUrl,
                 ProfissionalId = request.ProfissionalId,
-                EnderecoId = enderecoResult.EnderecoId
+                EnderecoId = enderecoResult.EnderecoId,
+                HorariosFuncionamento = request.Horarios.Select(h => new HorarioFuncionamento
+                {
+                    DiaSemana = (Domain.Enums.DiaSemana)h.DiaSemana,
+                    HoraAbertura = h.HoraAbertura,
+                    HoraFechamento = h.HoraFechamento,
+                    Fechado = h.Fechado
+                }).ToList()
             };
 
             var result = await _estabelecimentoRepository.AddAsync(estabelecimento);
             await _estabelecimentoRepository.SaveChangesAsync();
 
-            var response = MapToResponse(result);
+            var response = new EstabelecimentoResponse
+            {
+                EstabelecimentoId = result.EstabelecimentoId,
+                Nome = result.Nome,
+                Cnpj = result.Cnpj.Valor,
+                Telefone = result.Telefone,
+                Email = result.Email,
+                Descricao = result.Descricao,
+                ImagemEstabelecimentoUrl = result.ImagemEstabelecimentoUrl,
+                ProfissionalId = result.ProfissionalId,
+                ProfissionalNome = profissional.Nome,
+                Ativo = result.Ativo,
+                DataCriacao = result.DataCriacao,
+                DataAtualizacao = result.DataAtualizacao,
+                Endereco = new EnderecoResponse
+                {
+                    EnderecoId = endereco.EnderecoId,
+                    Rua = endereco.Rua,
+                    Numero = endereco.Numero,
+                    Bairro = endereco.Bairro,
+                    Complemento = endereco.Complemento,
+                    Cidade = endereco.Cidade,
+                    Estado = endereco.Estado,
+                    Cep = endereco.Cep.Valor,
+                    Latitude = endereco.Latitude,
+                    Longitude = endereco.Longitude,
+                    DataCriacao = endereco.DataCriacao,
+                    DataAtualizacao = endereco.DataAtualizacao,
+                    Ativo = endereco.Ativo
+                },
+                Horarios = result.HorariosFuncionamento.Select(h => new HorarioFuncionamentoResponse
+                {
+                    DiaSemana = h.DiaSemana,
+                    HoraAbertura = h.HoraAbertura,
+                    HoraFechamento = h.HoraFechamento,
+                    Fechado = h.Fechado
+                }).ToList()
+            };
+
             return ApiResponse<EstabelecimentoResponse>.SuccessResult(
                 response, "Estabelecimento criado com sucesso");
         }
