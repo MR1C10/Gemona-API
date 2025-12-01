@@ -35,8 +35,8 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<ClienteResponse>>> GetAllAsync()
         {
-            var clientes = await _clienteRepository.GetAllActiveAsync();
-            var response = clientes.Select(MapToResponse);
+            var clientes = await _clienteRepository.GetAllActiveWithEnderecosAsync();
+            var response = clientes.Select(MapToResponseWithEndereco);
             
             return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
                 response, "Clientes recuperados com sucesso");
@@ -44,40 +44,39 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<ClienteResponse?>> GetByIdAsync(int id)
         {
-            var cliente = await _userManager.FindByIdAsync(id.ToString());
+            var cliente = await _clienteRepository.GetClienteWithEnderecoAsync(id);
             if (cliente == null)
             {
                 throw new NotFoundException("Cliente", id);
             }
 
-            var response = MapToResponse(cliente);
+            var response = MapToResponseWithEndereco(cliente);
             return ApiResponse<ClienteResponse?>.SuccessResult(
                 response, "Cliente encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetByEmailAsync(string email)
         {
-            var cliente = await _userManager.FindByEmailAsync(email);
+            var cliente = await _clienteRepository.GetByEmailWithEnderecoAsync(email);
             if (cliente == null)
             {
                 throw new NotFoundException($"Cliente com email '{email}' não foi encontrado");
             }
 
-            var response = MapToResponse(cliente);
+            var response = MapToResponseWithEndereco(cliente);
             return ApiResponse<ClienteResponse?>.SuccessResult(
                 response, "Cliente encontrado com sucesso");
         }
 
         public async Task<ApiResponse<ClienteResponse?>> GetByCpfAsync(string cpf)
         {
-            var cpfValueObject = new Cpf(cpf);
-            var cliente = await _clienteRepository.GetByCpfAsync(cpfValueObject);
+            var cliente = await _clienteRepository.GetByCpfWithEnderecoAsync(cpf);
             if (cliente == null)
             {
                 throw new NotFoundException($"Cliente com CPF '{cpf}' não foi encontrado");
             }
 
-            var response = MapToResponse(cliente);
+            var response = MapToResponseWithEndereco(cliente);
             return ApiResponse<ClienteResponse?>.SuccessResult(
                 response, "Cliente encontrado com sucesso");
         }
@@ -97,8 +96,8 @@ namespace Gemona.Application.Services
 
         public async Task<ApiResponse<IEnumerable<ClienteResponse>>> GetClientesByIdadeAsync(int idadeMinima, int idadeMaxima)
         {
-            var clientes = await _clienteRepository.GetClientesByIdadeAsync(idadeMinima, idadeMaxima);
-            var response = clientes.Select(MapToResponse);
+            var clientes = await _clienteRepository.GetClientesByIdadeWithEnderecosAsync(idadeMinima, idadeMaxima);
+            var response = clientes.Select(MapToResponseWithEndereco);
             
             return ApiResponse<IEnumerable<ClienteResponse>>.SuccessResult(
                 response, $"Clientes entre {idadeMinima} e {idadeMaxima} anos encontrados");
@@ -188,7 +187,13 @@ namespace Gemona.Application.Services
                 throw new BusinessException($"Erro ao criar cliente: {errors}");
             }
 
-            var response = MapToResponse(cliente);
+            var createdClienteWithEndereco = await _clienteRepository.GetClienteWithEnderecoAsync(cliente.Id);
+            if (createdClienteWithEndereco == null)
+            {
+                throw new NotFoundException("Não foi possível encontrar o cliente recém-criado.");
+            }
+
+            var response = MapToResponseWithEndereco(createdClienteWithEndereco);
             return ApiResponse<ClienteResponse>.SuccessResult(
                 response, "Cliente criado com sucesso");
         }

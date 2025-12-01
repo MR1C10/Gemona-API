@@ -346,7 +346,7 @@ namespace Gemona.Application.Services
                 DataAtualizacao = estabelecimento.DataAtualizacao,
                 Ativo = estabelecimento.Ativo,
                 ProfissionalId = estabelecimento.ProfissionalId,
-                ProfissionalNome = estabelecimento.Profissional?.Nome // Adicionado, verifica se Profissional é null
+                ProfissionalNome = estabelecimento.Profissional?.Nome ?? string.Empty // Adicionado, verifica se Profissional é null
             };
 
             // Mapear Endereco

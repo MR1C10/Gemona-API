@@ -13,5 +13,9 @@ namespace Gemona.Application.Interfaces.Repositories
         Task<bool> CpfExistsAsync(string cpf);
         Task<Cliente?> GetClienteWithEnderecoAsync(int clienteId);
         Task<IEnumerable<Cliente>> GetClientesByIdadeAsync(int idadeMinima, int idadeMaxima);
+        Task<IEnumerable<Cliente>> GetAllActiveWithEnderecosAsync();
+        Task<Cliente?> GetByEmailWithEnderecoAsync(string email);
+        Task<Cliente?> GetByCpfWithEnderecoAsync(string cpf);
+        Task<IEnumerable<Cliente>> GetClientesByIdadeWithEnderecosAsync(int idadeMinima, int idadeMaxima);
     }
 }

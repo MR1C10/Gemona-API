@@ -65,5 +65,40 @@ namespace Gemona.Infrastructure.Data.Repositories
                            c.DataNascimento <= dataLimiteMax)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Cliente>> GetAllActiveWithEnderecosAsync()
+        {
+            return await _dbSet
+                .Where(c => c.Ativo)
+                .Include(c => c.Endereco)
+                .ToListAsync();
+        }
+
+        public async Task<Cliente?> GetByEmailWithEnderecoAsync(string email)
+        {
+            return await _dbSet
+                .Include(c => c.Endereco)
+                .FirstOrDefaultAsync(c => c.Email == email);
+        }
+
+        public async Task<Cliente?> GetByCpfWithEnderecoAsync(string cpf)
+        {
+            var cpfObj = new Cpf(cpf);
+            return await _dbSet
+                .Include(c => c.Endereco)
+                .FirstOrDefaultAsync(c => c.Cpf == cpfObj);
+        }
+
+        public async Task<IEnumerable<Cliente>> GetClientesByIdadeWithEnderecosAsync(int idadeMinima, int idadeMaxima)
+        {
+            var dataLimiteMax = DateTime.Today.AddYears(-idadeMinima);
+            var dataLimiteMin = DateTime.Today.AddYears(-idadeMaxima - 1);
+
+            return await _dbSet
+                .Where(c => c.DataNascimento >= dataLimiteMin && 
+                           c.DataNascimento <= dataLimiteMax)
+                .Include(c => c.Endereco)
+                .ToListAsync();
+        }
     }
 }
