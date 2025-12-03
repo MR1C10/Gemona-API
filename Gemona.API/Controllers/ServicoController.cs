@@ -87,7 +87,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Profissional")]
+        [Authorize(Roles = "Admin,Profissional")]
         public async Task<IActionResult> Create([FromBody] CreateServicoRequest request)
         {
             var result = await _servicoService.CreateAsync(request);
@@ -98,7 +98,7 @@ namespace Gemona.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Profissional")]
+        [Authorize(Roles = "Admin,Profissional")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateServicoRequest request)
         {
             var result = await _servicoService.UpdateAsync(id, request);
